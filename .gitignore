@@ -1,0 +1,36 @@
+# Archivos de entorno
+.env
+.env.local
+.env.*
+
+# Carpetas de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+env.bak/
+venv.bak/
+
+# Carpetas de Django
+db.sqlite3
+media/
+
+# Archivos de IDE
+.vscode/
+*.swp
+*.swo
+.idea/
+*.log
+
+# Carpeta de build de static (si usas collectstatic)
+staticfiles/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+
+LARavel_TO_DJANGO_MIGRATION_GUIDE.md
