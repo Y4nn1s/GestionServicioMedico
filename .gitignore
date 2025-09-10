@@ -13,6 +13,7 @@ env/
 venv/
 env.bak/
 venv.bak/
+medico/
 
 # Carpetas de Django
 db.sqlite3
