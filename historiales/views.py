@@ -1,70 +1,70 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from django.urls import reverse_lazy
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import HistorialMedico
 from .forms import HistorialMedicoForm
 
-class HistorialMedicoListView(LoginRequiredMixin, ListView):
-    model = HistorialMedico
-    template_name = 'historiales/historial_list.html'
-    context_object_name = 'historiales'
-    paginate_by = 10
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        paciente_id = self.request.GET.get('paciente', '')
-        
-        if paciente_id:
-            queryset = queryset.filter(paciente__id=paciente_id)
-        
-        return queryset
+def index(request):
+    historiales_list = HistorialMedico.objects.all().select_related('paciente')
+    paginator = Paginator(historiales_list, 10)  # Mostrar 10 historiales por página
+    page_number = request.GET.get('page')
+    historiales = paginator.get_page(page_number)
+    return render(request, 'historiales/index.html', {'historiales': historiales})
 
-class HistorialMedicoDetailView(LoginRequiredMixin, DetailView):
-    model = HistorialMedico
-    template_name = 'historiales/historial_detail.html'
-    context_object_name = 'historial'
+def create(request):
+    if request.method == 'POST':
+        form = HistorialMedicoForm(request.POST)
+        if form.is_valid():
+            historial = form.save()
+            messages.success(request, 'Historial médico creado correctamente.')
+            return redirect('historiales:index')
+    else:
+        form = HistorialMedicoForm()
+    return render(request, 'historiales/create.html', {'form': form})
 
-class HistorialMedicoCreateView(LoginRequiredMixin, CreateView):
-    model = HistorialMedico
-    form_class = HistorialMedicoForm
-    template_name = 'historiales/historial_form.html'
-    
-    def get_success_url(self):
-        return reverse_lazy('historiales:detalle_historial', kwargs={'pk': self.object.pk})
-    
-    def form_valid(self, form):
-        messages.success(self.request, 'Historial médico creado exitosamente.')
-        return super().form_valid(form)
+def show(request, historial_id):
+    historial = get_object_or_404(HistorialMedico, id=historial_id)
+    return render(request, 'historiales/show.html', {'historial': historial})
 
-class HistorialMedicoUpdateView(LoginRequiredMixin, UpdateView):
-    model = HistorialMedico
-    form_class = HistorialMedicoForm
-    template_name = 'historiales/historial_form.html'
-    context_object_name = 'historial'
-    
-    def get_success_url(self):
-        return reverse_lazy('historiales:detalle_historial', kwargs={'pk': self.object.pk})
-    
-    def form_valid(self, form):
-        messages.success(self.request, 'Historial médico actualizado exitosamente.')
-        return super().form_valid(form)
+def edit(request, historial_id):
+    historial = get_object_or_404(HistorialMedico, id=historial_id)
+    if request.method == 'POST':
+        form = HistorialMedicoForm(request.POST, instance=historial)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Historial médico actualizado correctamente.')
+            return redirect('historiales:index')
+    else:
+        form = HistorialMedicoForm(instance=historial)
+    return render(request, 'historiales/edit.html', {'form': form, 'historial': historial})
 
-def buscar_historiales(request):
+def destroy(request, historial_id):
+    historial = get_object_or_404(HistorialMedico, id=historial_id)
+    if request.method == 'POST':
+        historial.delete()
+        messages.success(request, 'Historial médico eliminado correctamente.')
+        return redirect('historiales:index')
+    return render(request, 'historiales/destroy.html', {'historial': historial})
+
+def search(request):
     query = request.GET.get('q', '')
-    historiales = HistorialMedico.objects.all()
+    historiales = HistorialMedico.objects.all().select_related('paciente')
     
     if query:
         historiales = historiales.filter(
             Q(paciente__nombre__icontains=query) |
             Q(paciente__apellido__icontains=query) |
-            Q(diagnostico__icontains=query) |
-            Q(tratamiento__icontains=query)
+            Q(alergias__icontains=query) |
+            Q(enfermedades_preexistentes__icontains=query) |
+            Q(medicamentos_actuales__icontains=query)
         )
     
-    return render(request, 'historiales/buscar_historiales.html', {
-        'historiales': historiales,
+    paginator = Paginator(historiales, 10)
+    page_number = request.GET.get('page')
+    historiales_page = paginator.get_page(page_number)
+    
+    return render(request, 'historiales/search.html', {
+        'historiales': historiales_page,
         'query': query
     })

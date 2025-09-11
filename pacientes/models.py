@@ -1,19 +1,97 @@
 from django.db import models
 
-class Paciente(models.Model):
-    GENERO_CHOICES = [
-        ('Masculino', 'Masculino'),
-        ('Femenino', 'Femenino'),
-        ('Otro', 'Otro'),
-    ]
+class TipoDocumento(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+    descripcion = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
+    def __str__(self):
+        return self.nombre
+    
+    class Meta:
+        db_table = 'tipos_documento'
+        verbose_name = 'Tipo de Documento'
+        verbose_name_plural = 'Tipos de Documento'
+
+class Genero(models.Model):
+    nombre = models.CharField(max_length=20, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.nombre
+    
+    class Meta:
+        db_table = 'generos'
+        verbose_name = 'Género'
+        verbose_name_plural = 'Géneros'
+
+class Pais(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    codigo_iso = models.CharField(max_length=3, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.nombre
+    
+    class Meta:
+        db_table = 'paises'
+        verbose_name = 'País'
+        verbose_name_plural = 'Países'
+
+class Departamento(models.Model):
+    nombre = models.CharField(max_length=100)
+    pais = models.ForeignKey(Pais, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.nombre}, {self.pais.nombre}"
+    
+    class Meta:
+        db_table = 'departamentos'
+        unique_together = ('nombre', 'pais')
+        verbose_name = 'Departamento'
+        verbose_name_plural = 'Departamentos'
+
+class Ciudad(models.Model):
+    nombre = models.CharField(max_length=100)
+    departamento = models.ForeignKey(Departamento, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.nombre}, {self.departamento.nombre}"
+    
+    class Meta:
+        db_table = 'ciudades'
+        unique_together = ('nombre', 'departamento')
+        verbose_name = 'Ciudad'
+        verbose_name_plural = 'Ciudades'
+
+class TipoTelefono(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+    mascara = models.CharField(max_length=20, blank=True, null=True)  # Ej: (XXX) XXX-XXXX
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.nombre
+    
+    class Meta:
+        db_table = 'tipos_telefono'
+        verbose_name = 'Tipo de Teléfono'
+        verbose_name_plural = 'Tipos de Teléfono'
+
+class Paciente(models.Model):
+    tipo_documento = models.ForeignKey(TipoDocumento, on_delete=models.CASCADE)
+    numero_documento = models.CharField(max_length=20)
     nombre = models.CharField(max_length=255)
     apellido = models.CharField(max_length=255)
-    cedula = models.CharField(max_length=20)
-    edad = models.IntegerField()
-    genero = models.CharField(max_length=20, choices=GENERO_CHOICES)
-    telefono = models.CharField(max_length=20)
-    direccion = models.CharField(max_length=255)
+    fecha_nacimiento = models.DateField()
+    genero = models.ForeignKey(Genero, on_delete=models.CASCADE)
     email = models.EmailField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -21,5 +99,54 @@ class Paciente(models.Model):
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
     
+    @property
+    def edad(self):
+        from datetime import date
+        today = date.today()
+        return today.year - self.fecha_nacimiento.year - (
+            (today.month, today.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+        )
+    
     class Meta:
         db_table = 'pacientes'
+        unique_together = ('tipo_documento', 'numero_documento')
+        indexes = [
+            models.Index(fields=['apellido', 'nombre']),
+            models.Index(fields=['fecha_nacimiento']),
+        ]
+        verbose_name = 'Paciente'
+        verbose_name_plural = 'Pacientes'
+
+class Direccion(models.Model):
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='direcciones')
+    ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE)
+    direccion = models.CharField(max_length=255)
+    codigo_postal = models.CharField(max_length=10, blank=True, null=True)
+    es_principal = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.direccion}, {self.ciudad}"
+    
+    class Meta:
+        db_table = 'direcciones'
+        verbose_name = 'Dirección'
+        verbose_name_plural = 'Direcciones'
+
+class Telefono(models.Model):
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='telefonos')
+    tipo_telefono = models.ForeignKey(TipoTelefono, on_delete=models.CASCADE)
+    numero = models.CharField(max_length=20)
+    es_principal = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.numero} ({self.tipo_telefono.nombre})"
+    
+    class Meta:
+        db_table = 'telefonos'
+        unique_together = ('paciente', 'numero')
+        verbose_name = 'Teléfono'
+        verbose_name_plural = 'Teléfonos'

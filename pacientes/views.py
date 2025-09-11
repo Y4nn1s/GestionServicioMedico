@@ -1,63 +1,74 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
 from django.contrib import messages
-from .models import Paciente
+from django.core.paginator import Paginator
+from django.db.models import Q
+from .models import Paciente, TipoDocumento, Genero, Direccion, Telefono
 from .forms import PacienteForm
 
-class PacienteListView(ListView):
-    model = Paciente
-    template_name = 'pacientes/paciente_list.html'
-    context_object_name = 'pacientes'
-    paginate_by = 10
+def index(request):
+    pacientes_list = Paciente.objects.all().select_related('tipo_documento', 'genero')
+    paginator = Paginator(pacientes_list, 10)  # Mostrar 10 pacientes por página
+    page_number = request.GET.get('page')
+    pacientes = paginator.get_page(page_number)
+    return render(request, 'pacientes/index.html', {'pacientes': pacientes})
 
-class PacienteDetailView(DetailView):
-    model = Paciente
-    template_name = 'pacientes/paciente_detail.html'
-    context_object_name = 'paciente'
+def create(request):
+    if request.method == 'POST':
+        form = PacienteForm(request.POST)
+        if form.is_valid():
+            paciente = form.save()
+            messages.success(request, 'Paciente creado correctamente.')
+            return redirect('pacientes:index')
+    else:
+        form = PacienteForm()
+    return render(request, 'pacientes/create.html', {'form': form})
 
-class PacienteCreateView(CreateView):
-    model = Paciente
-    form_class = PacienteForm
-    template_name = 'pacientes/paciente_form.html'
-    success_url = reverse_lazy('pacientes:lista_pacientes')
-    
-    def form_valid(self, form):
-        messages.success(self.request, 'Paciente creado exitosamente.')
-        return super().form_valid(form)
+def show(request, paciente_id):
+    paciente = get_object_or_404(Paciente, id=paciente_id)
+    direcciones = Direccion.objects.filter(paciente=paciente)
+    telefonos = Telefono.objects.filter(paciente=paciente)
+    return render(request, 'pacientes/show.html', {
+        'paciente': paciente,
+        'direcciones': direcciones,
+        'telefonos': telefonos
+    })
 
-class PacienteUpdateView(UpdateView):
-    model = Paciente
-    form_class = PacienteForm
-    template_name = 'pacientes/paciente_form.html'
-    context_object_name = 'paciente'
-    success_url = reverse_lazy('pacientes:lista_pacientes')
-    
-    def form_valid(self, form):
-        messages.success(self.request, 'Paciente actualizado exitosamente.')
-        return super().form_valid(form)
+def edit(request, paciente_id):
+    paciente = get_object_or_404(Paciente, id=paciente_id)
+    if request.method == 'POST':
+        form = PacienteForm(request.POST, instance=paciente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Paciente actualizado correctamente.')
+            return redirect('pacientes:index')
+    else:
+        form = PacienteForm(instance=paciente)
+    return render(request, 'pacientes/edit.html', {'form': form, 'paciente': paciente})
 
-class PacienteDeleteView(DeleteView):
-    model = Paciente
-    template_name = 'pacientes/paciente_confirm_delete.html'
-    success_url = reverse_lazy('pacientes:lista_pacientes')
-    
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, 'Paciente eliminado exitosamente.')
-        return super().delete(request, *args, **kwargs)
+def destroy(request, paciente_id):
+    paciente = get_object_or_404(Paciente, id=paciente_id)
+    if request.method == 'POST':
+        paciente.delete()
+        messages.success(request, 'Paciente eliminado correctamente.')
+        return redirect('pacientes:index')
+    return render(request, 'pacientes/destroy.html', {'paciente': paciente})
 
-def buscar_pacientes(request):
+def search(request):
     query = request.GET.get('q', '')
-    pacientes = Paciente.objects.all()
+    pacientes = Paciente.objects.all().select_related('tipo_documento', 'genero')
     
     if query:
         pacientes = pacientes.filter(
-            models.Q(nombre__icontains=query) |
-            models.Q(apellido__icontains=query) |
-            models.Q(cedula__icontains=query)
+            Q(nombre__icontains=query) |
+            Q(apellido__icontains=query) |
+            Q(numero_documento__icontains=query)
         )
     
-    return render(request, 'pacientes/buscar_pacientes.html', {
-        'pacientes': pacientes,
+    paginator = Paginator(pacientes, 10)
+    page_number = request.GET.get('page')
+    pacientes_page = paginator.get_page(page_number)
+    
+    return render(request, 'pacientes/search.html', {
+        'pacientes': pacientes_page,
         'query': query
     })
