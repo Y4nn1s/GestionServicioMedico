@@ -4,11 +4,12 @@ from . import views
 app_name = 'citas'
 
 urlpatterns = [
-    path('', views.CitaListView.as_view(), name='lista_citas'),
-    path('hoy/', views.citas_hoy, name='citas_hoy'),
-    path('<int:pk>/', views.CitaDetailView.as_view(), name='detalle_cita'),
-    path('crear/', views.CitaCreateView.as_view(), name='crear_cita'),
-    path('<int:pk>/editar/', views.CitaUpdateView.as_view(), name='editar_cita'),
-    path('<int:pk>/eliminar/', views.CitaDeleteView.as_view(), name='eliminar_cita'),
-    path('<int:pk>/estado/<str:estado>/', views.cambiar_estado_cita, name='cambiar_estado_cita'),
+    path('', views.index, name='index'),
+    path('create/', views.create, name='create'),
+    path('<int:cita_id>/', views.show, name='show'),
+    path('<int:cita_id>/edit/', views.edit, name='edit'),
+    path('<int:cita_id>/destroy/', views.destroy, name='destroy'),
+    path('search/', views.search, name='search'),
+    path('hoy/', views.citas_hoy, name='hoy'),
+    path('<int:cita_id>/estado/<int:estado_id>/', views.cambiar_estado, name='cambiar_estado'),
 ]

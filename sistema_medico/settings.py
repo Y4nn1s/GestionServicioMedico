@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'sistema_unearte',
         'USER': 'postgres',
-        'PASSWORD': '1234',
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',  # o la IP de tu servidor de base de datos
         'PORT': '5432',       # puerto por defecto de PostgreSQL
     }
