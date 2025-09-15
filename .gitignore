@@ -17,7 +17,6 @@ medico/
 
 # Carpetas de Django
 db.sqlite3
-media/
 
 # Archivos de IDE
 .vscode/
@@ -26,12 +25,8 @@ media/
 .idea/
 *.log
 
-# Carpeta de build de static (si usas collectstatic)
-staticfiles/
-
 # Archivos de sistema
 .DS_Store
 Thumbs.db
 
 
-LARavel_TO_DJANGO_MIGRATION_GUIDE.md

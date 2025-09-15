@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Dashboard del Sistema Médico</h1>
+        <p class="lead">Bienvenido al sistema de gestión de servicios médicos.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Pacientes</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ total_pacientes }}</h5>
+                <p class="card-text">Pacientes registrados</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Citas Hoy</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ citas_hoy }}</h5>
+                <p class="card-text">Citas programadas para hoy</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Citas Pendientes</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ citas_pendientes }}</h5>
+                <p class="card-text">Citas pendientes</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Historiales</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ total_historiales }}</h5>
+                <p class="card-text">Historiales médicos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Últimas Citas</h5>
+            </div>
+            <div class="card-body">
+                {% if ultimas_citas %}
+                    <div class="list-group">
+                        {% for cita in ultimas_citas %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ cita.paciente.nombre }} {{ cita.paciente.apellido }}</h6>
+                                    <small>{{ cita.fecha|date:"d/m/Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ cita.motivo.nombre }}</p>
+                                <small>{{ cita.hora_inicio|time:"H:i" }} - {{ cita.hora_fin|time:"H:i" }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No hay citas registradas.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Últimos Pacientes</h5>
+            </div>
+            <div class="card-body">
+                {% if ultimos_pacientes %}
+                    <div class="list-group">
+                        {% for paciente in ultimos_pacientes %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ paciente.nombre }} {{ paciente.apellido }}</h6>
+                                    <small>{{ paciente.created_at|date:"d/m/Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ paciente.tipo_documento }}: {{ paciente.numero_documento }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No hay pacientes registrados.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

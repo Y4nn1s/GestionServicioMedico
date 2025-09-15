@@ -15,19 +15,20 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # Estadísticas para el dashboard
         context['total_pacientes'] = Paciente.objects.count()
         context['citas_hoy'] = Cita.objects.filter(
-            fecha__date=timezone.now().date()
+            fecha=timezone.now().date()
         ).count()
         context['citas_pendientes'] = Cita.objects.filter(
-            estado='pendiente'
+            estado__nombre='Pendiente'
         ).count()
+        context['total_historiales'] = HistorialMedico.objects.count()
         
         # Últimas citas
         context['ultimas_citas'] = Cita.objects.select_related(
-            'paciente', 'doctor'
+            'paciente', 'estado', 'motivo'
         ).order_by('-fecha')[:5]
         
         # Últimos pacientes
-        context['ultimos_pacientes'] = Paciente.objects.order_by('-fecha_registro')[:5]
+        context['ultimos_pacientes'] = Paciente.objects.order_by('-created_at')[:5]
         
         return context
 
