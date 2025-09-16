@@ -30,3 +30,6 @@ db.sqlite3
 Thumbs.db
 
 
+LARavel_TO_DJANGO_MIGRATION_GUIDE.md
+
+settings.py
