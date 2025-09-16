@@ -23,5 +23,6 @@ urlpatterns = [
     path('pacientes/', include('pacientes.urls', namespace='pacientes')),
     path('citas/', include('citas.urls', namespace='citas')),
     path('historiales/', include('historiales.urls', namespace='historiales')),
+    path('inventario/', include('inventario.urls', namespace='inventario')),
     path('accounts/', include('django.contrib.auth.urls')),
 ]

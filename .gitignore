@@ -29,6 +29,10 @@ db.sqlite3
 .DS_Store
 Thumbs.db
 
+# Miscelaneos
+reset_db.py
+LARavel_TO_DJANGO_MIGRATION_GUIDE.md
+INFORME-PSC-46-6.txt
 
 LARavel_TO_DJANGO_MIGRATION_GUIDE.md
 
