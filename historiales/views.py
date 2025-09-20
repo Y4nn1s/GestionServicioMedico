@@ -1,12 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
 from .models import HistorialMedico
 from .forms import HistorialMedicoForm
 
 def index(request):
-    historiales_list = HistorialMedico.objects.all().select_related('paciente')
+    historiales_list = HistorialMedico.objects.all().order_by('-created_at')
     paginator = Paginator(historiales_list, 10)  # Mostrar 10 historiales por página
     page_number = request.GET.get('page')
     historiales = paginator.get_page(page_number)
@@ -16,7 +15,7 @@ def create(request):
     if request.method == 'POST':
         form = HistorialMedicoForm(request.POST)
         if form.is_valid():
-            historial = form.save()
+            form.save()
             messages.success(request, 'Historial médico creado correctamente.')
             return redirect('historiales:index')
     else:
@@ -49,15 +48,11 @@ def destroy(request, historial_id):
 
 def search(request):
     query = request.GET.get('q', '')
-    historiales = HistorialMedico.objects.all().select_related('paciente')
+    historiales = HistorialMedico.objects.all().order_by('-created_at')
     
     if query:
         historiales = historiales.filter(
-            Q(paciente__nombre__icontains=query) |
-            Q(paciente__apellido__icontains=query) |
-            Q(alergias__icontains=query) |
-            Q(enfermedades_preexistentes__icontains=query) |
-            Q(medicamentos_actuales__icontains=query)
+            paciente__nombre__icontains=query
         )
     
     paginator = Paginator(historiales, 10)

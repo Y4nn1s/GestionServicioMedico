@@ -8,7 +8,7 @@ from .forms import CategoriaForm, ProveedorForm, MedicamentoForm, InventarioForm
 
 # Vistas para Categorías
 def listar_categorias(request):
-    categorias_list = Categoria.objects.all()
+    categorias_list = Categoria.objects.all().order_by('nombre')
     paginator = Paginator(categorias_list, 10)
     page_number = request.GET.get('page')
     categorias = paginator.get_page(page_number)
@@ -47,7 +47,7 @@ def eliminar_categoria(request, categoria_id):
 
 # Vistas para Proveedores
 def listar_proveedores(request):
-    proveedores_list = Proveedor.objects.all()
+    proveedores_list = Proveedor.objects.all().order_by('nombre')
     paginator = Paginator(proveedores_list, 10)
     page_number = request.GET.get('page')
     proveedores = paginator.get_page(page_number)
@@ -86,7 +86,7 @@ def eliminar_proveedor(request, proveedor_id):
 
 # Vistas para Medicamentos
 def listar_medicamentos(request):
-    medicamentos_list = Medicamento.objects.select_related('categoria', 'proveedor').all()
+    medicamentos_list = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
     paginator = Paginator(medicamentos_list, 10)
     page_number = request.GET.get('page')
     medicamentos = paginator.get_page(page_number)
@@ -127,7 +127,7 @@ def eliminar_medicamento(request, medicamento_id):
 
 # Vistas para Inventario
 def listar_inventario(request):
-    inventario_list = Inventario.objects.select_related('medicamento').all()
+    inventario_list = Inventario.objects.select_related('medicamento').all().order_by('-created_at')
     paginator = Paginator(inventario_list, 10)
     page_number = request.GET.get('page')
     inventario = paginator.get_page(page_number)
@@ -170,7 +170,7 @@ def eliminar_inventario(request, inventario_id):
 # Vista para mostrar stock total por medicamento
 def stock_medicamentos(request):
     # Obtener todos los medicamentos con su stock actual
-    medicamentos_list = Medicamento.objects.select_related('categoria', 'proveedor').all()
+    medicamentos_list = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
     for medicamento in medicamentos_list:
         medicamento.stock = medicamento.stock_actual
         medicamento.estado = medicamento.estado_stock
@@ -183,7 +183,7 @@ def stock_medicamentos(request):
 
 # Vistas para Movimientos
 def listar_movimientos(request):
-    movimientos_list = MovimientoInventario.objects.select_related('medicamento').all()
+    movimientos_list = MovimientoInventario.objects.select_related('medicamento').all().order_by('-fecha')
     paginator = Paginator(movimientos_list, 10)
     page_number = request.GET.get('page')
     movimientos = paginator.get_page(page_number)
