@@ -2,11 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Paciente, TipoDocumento, Genero, Direccion, Telefono
+from .models import Paciente, TipoDocumento, Genero, Pais, Departamento, Ciudad, Direccion, Telefono, TipoTelefono
 from .forms import PacienteForm
 
 def index(request):
-    pacientes_list = Paciente.objects.all().select_related('tipo_documento', 'genero')
+    pacientes_list = Paciente.objects.all().order_by('apellido', 'nombre')
     paginator = Paginator(pacientes_list, 10)  # Mostrar 10 pacientes por página
     page_number = request.GET.get('page')
     pacientes = paginator.get_page(page_number)
@@ -55,7 +55,7 @@ def destroy(request, paciente_id):
 
 def search(request):
     query = request.GET.get('q', '')
-    pacientes = Paciente.objects.all().select_related('tipo_documento', 'genero')
+    pacientes = Paciente.objects.all().order_by('apellido', 'nombre')
     
     if query:
         pacientes = pacientes.filter(

@@ -7,7 +7,7 @@ from .models import Cita, EstadoCita, TipoCita, MotivoCita
 from .forms import CitaForm
 
 def index(request):
-    citas_list = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado')
+    citas_list = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
     paginator = Paginator(citas_list, 10)  # Mostrar 10 citas por página
     page_number = request.GET.get('page')
     citas = paginator.get_page(page_number)
@@ -54,7 +54,7 @@ def destroy(request, cita_id):
 
 def search(request):
     query = request.GET.get('q', '')
-    citas = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado')
+    citas = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
     
     if query:
         citas = citas.filter(
