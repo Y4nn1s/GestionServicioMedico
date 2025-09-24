@@ -1,82 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'form_base.html' %}
 
 {% block title %}Nuevo Historial Médico{% endblock %}
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title mb-0">
-                    <i class="bi bi-journal-medical"></i> Crear Nuevo Historial Médico
-                </h3>
-            </div>
-            <div class="card-body">
-                <form method="POST">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.paciente.id_for_label }}" class="form-label">
-                            {{ form.paciente.label }}
-                        </label>
-                        {{ form.paciente }}
-                        {% if form.paciente.errors %}
-                            <div class="text-danger">
-                                {{ form.paciente.errors }}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">
-                            Solo se muestran pacientes que no tienen un historial médico registrado.
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.alergias.id_for_label }}" class="form-label">
-                            {{ form.alergias.label }}
-                        </label>
-                        {{ form.alergias }}
-                        {% if form.alergias.errors %}
-                            <div class="text-danger">
-                                {{ form.alergias.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.enfermedades_preexistentes.id_for_label }}" class="form-label">
-                            {{ form.enfermedades_preexistentes.label }}
-                        </label>
-                        {{ form.enfermedades_preexistentes }}
-                        {% if form.enfermedades_preexistentes.errors %}
-                            <div class="text-danger">
-                                {{ form.enfermedades_preexistentes.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.medicamentos_actuales.id_for_label }}" class="form-label">
-                            {{ form.medicamentos_actuales.label }}
-                        </label>
-                        {{ form.medicamentos_actuales }}
-                        {% if form.medicamentos_actuales.errors %}
-                            <div class="text-danger">
-                                {{ form.medicamentos_actuales.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'historiales:index' %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Volver
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save"></i> Crear Historial
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+{% block form_title %}Crear Nuevo Historial Médico{% endblock %}
+
+{% block cancel_url %}{% url 'historiales:index' %}{% endblock %}
+
+{% block submit_text %}Crear Historial{% endblock %}
