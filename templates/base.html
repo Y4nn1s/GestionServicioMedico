@@ -19,6 +19,7 @@
             --unearte-dark: #212529;
         }
         
+        /* Barra de navegación */
         .navbar-unearte {
             background: linear-gradient(135deg, var(--unearte-primary), var(--unearte-secondary)) !important;
         }
@@ -52,39 +53,68 @@
             transform: translateY(-2px);
         }
         
+        /* Botones con colores UNEARTE */
         .btn-unearte-primary {
-            background-color: var(--unearte-primary);
-            border-color: var(--unearte-primary);
-            color: white;
+            background-color: var(--unearte-primary) !important;
+            border-color: var(--unearte-primary) !important;
+            color: white !important;
         }
         
         .btn-unearte-primary:hover {
-            background-color: #143720;
-            border-color: #143720;
+            background-color: #143720 !important;
+            border-color: #143720 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(26, 71, 42, 0.3);
         }
         
         .btn-unearte-secondary {
-            background-color: var(--unearte-secondary);
-            border-color: var(--unearte-secondary);
-            color: white;
+            background-color: var(--unearte-secondary) !important;
+            border-color: var(--unearte-secondary) !important;
+            color: white !important;
         }
         
         .btn-unearte-secondary:hover {
-            background-color: #6a1731;
-            border-color: #6a1731;
+            background-color: #6a1731 !important;
+            border-color: #6a1731 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(140, 29, 64, 0.3);
         }
         
+        .btn-outline-unearte-primary {
+            border-color: var(--unearte-primary) !important;
+            color: var(--unearte-primary) !important;
+        }
+        
+        .btn-outline-unearte-primary:hover {
+            background-color: var(--unearte-primary) !important;
+            border-color: var(--unearte-primary) !important;
+            color: white !important;
+        }
+        
+        .btn-outline-unearte-secondary {
+            border-color: var(--unearte-secondary) !important;
+            color: var(--unearte-secondary) !important;
+        }
+        
+        .btn-outline-unearte-secondary:hover {
+            background-color: var(--unearte-secondary) !important;
+            border-color: var(--unearte-secondary) !important;
+            color: white !important;
+        }
+        
+        /* Tarjetas */
         .card-unearte {
-            border: 1px solid rgba(26, 71, 42, 0.15);
-            box-shadow: 0 0.125rem 0.25rem rgba(26, 71, 42, 0.1);
+            border: 1px solid rgba(26, 71, 42, 0.15) !important;
+            box-shadow: 0 0.125rem 0.25rem rgba(26, 71, 42, 0.1) !important;
         }
         
         .card-header-unearte {
-            background: linear-gradient(135deg, var(--unearte-primary), #2a6a3a);
-            color: white;
-            border: none;
+            background: linear-gradient(135deg, var(--unearte-primary), #2a6a3a) !important;
+            color: white !important;
+            border: none !important;
         }
         
+        /* Encabezados */
         .bg-unearte-primary {
             background-color: var(--unearte-primary) !important;
         }
@@ -99,6 +129,68 @@
         
         .text-unearte-secondary {
             color: var(--unearte-secondary) !important;
+        }
+        
+        /* Alertas */
+        .alert-unearte-primary {
+            background-color: rgba(26, 71, 42, 0.1) !important;
+            border-color: var(--unearte-primary) !important;
+            color: var(--unearte-primary) !important;
+        }
+        
+        .alert-unearte-secondary {
+            background-color: rgba(140, 29, 64, 0.1) !important;
+            border-color: var(--unearte-secondary) !important;
+            color: var(--unearte-secondary) !important;
+        }
+        
+        /* Links */
+        .link-unearte {
+            color: var(--unearte-primary) !important;
+        }
+        
+        .link-unearte:hover {
+            color: var(--unearte-secondary) !important;
+            text-decoration: underline;
+        }
+        
+        /* Formularios */
+        .form-control:focus {
+            border-color: var(--unearte-primary) !important;
+            box-shadow: 0 0 0 0.2rem rgba(26, 71, 42, 0.25) !important;
+        }
+        
+        .form-select:focus {
+            border-color: var(--unearte-primary) !important;
+            box-shadow: 0 0 0 0.2rem rgba(26, 71, 42, 0.25) !important;
+        }
+        
+        /* Tabs */
+        .nav-tabs .nav-link.active,
+        .nav-tabs .nav-item.show .nav-link {
+            color: var(--unearte-primary) !important;
+            background-color: white !important;
+            border-color: var(--unearte-primary) var(--unearte-primary) transparent !important;
+        }
+        
+        .nav-tabs .nav-link:hover,
+        .nav-tabs .nav-link:focus {
+            color: var(--unearte-secondary) !important;
+        }
+        
+        /* Tablas */
+        .table-unearte {
+            --bs-table-bg: transparent;
+            --bs-table-accent-bg: rgba(26, 71, 42, 0.05);
+            --bs-table-striped-bg: rgba(26, 71, 42, 0.03);
+            --bs-table-active-bg: rgba(26, 71, 42, 0.1);
+            --bs-table-hover-bg: rgba(26, 71, 42, 0.075);
+            --bs-table-border-color: rgba(26, 71, 42, 0.1);
+        }
+        
+        .table-unearte thead th {
+            background-color: rgba(26, 71, 42, 0.1) !important;
+            border-bottom-color: var(--unearte-primary) !important;
         }
     </style>
 </head>
@@ -136,7 +228,17 @@
     <div class="container">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'success' %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {% elif message.tags == 'error' %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {% elif message.tags == 'warning' %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {% elif message.tags == 'info' %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                {% else %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% endif %}
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
