@@ -10,189 +10,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Estilos personalizados para colores de UNEARTE -->
-    <style>
-        :root {
-            --unearte-primary: #1a472a; /* Verde oscuro de UNEARTE */
-            --unearte-secondary: #8c1d40; /* Rojo/morado de UNEARTE */
-            --unearte-accent: #ffc107; /* Color secundario */
-            --unearte-light: #f8f9fa;
-            --unearte-dark: #212529;
-        }
-        
-        /* Barra de navegación */
-        .navbar-unearte {
-            background: linear-gradient(135deg, var(--unearte-primary), var(--unearte-secondary)) !important;
-        }
-        
-        .navbar-brand-custom {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .navbar-brand-custom img {
-            height: 40px;
-            width: auto;
-        }
-        
-        .navbar-brand-custom span {
-            color: white !important;
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-        
-        .nav-link-custom {
-            color: white !important;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .nav-link-custom:hover {
-            color: var(--unearte-accent) !important;
-            transform: translateY(-2px);
-        }
-        
-        /* Botones con colores UNEARTE */
-        .btn-unearte-primary {
-            background-color: var(--unearte-primary) !important;
-            border-color: var(--unearte-primary) !important;
-            color: white !important;
-        }
-        
-        .btn-unearte-primary:hover {
-            background-color: #143720 !important;
-            border-color: #143720 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(26, 71, 42, 0.3);
-        }
-        
-        .btn-unearte-secondary {
-            background-color: var(--unearte-secondary) !important;
-            border-color: var(--unearte-secondary) !important;
-            color: white !important;
-        }
-        
-        .btn-unearte-secondary:hover {
-            background-color: #6a1731 !important;
-            border-color: #6a1731 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(140, 29, 64, 0.3);
-        }
-        
-        .btn-outline-unearte-primary {
-            border-color: var(--unearte-primary) !important;
-            color: var(--unearte-primary) !important;
-        }
-        
-        .btn-outline-unearte-primary:hover {
-            background-color: var(--unearte-primary) !important;
-            border-color: var(--unearte-primary) !important;
-            color: white !important;
-        }
-        
-        .btn-outline-unearte-secondary {
-            border-color: var(--unearte-secondary) !important;
-            color: var(--unearte-secondary) !important;
-        }
-        
-        .btn-outline-unearte-secondary:hover {
-            background-color: var(--unearte-secondary) !important;
-            border-color: var(--unearte-secondary) !important;
-            color: white !important;
-        }
-        
-        /* Tarjetas */
-        .card-unearte {
-            border: 1px solid rgba(26, 71, 42, 0.15) !important;
-            box-shadow: 0 0.125rem 0.25rem rgba(26, 71, 42, 0.1) !important;
-        }
-        
-        .card-header-unearte {
-            background: linear-gradient(135deg, var(--unearte-primary), #2a6a3a) !important;
-            color: white !important;
-            border: none !important;
-        }
-        
-        /* Encabezados */
-        .bg-unearte-primary {
-            background-color: var(--unearte-primary) !important;
-        }
-        
-        .bg-unearte-secondary {
-            background-color: var(--unearte-secondary) !important;
-        }
-        
-        .text-unearte-primary {
-            color: var(--unearte-primary) !important;
-        }
-        
-        .text-unearte-secondary {
-            color: var(--unearte-secondary) !important;
-        }
-        
-        /* Alertas */
-        .alert-unearte-primary {
-            background-color: rgba(26, 71, 42, 0.1) !important;
-            border-color: var(--unearte-primary) !important;
-            color: var(--unearte-primary) !important;
-        }
-        
-        .alert-unearte-secondary {
-            background-color: rgba(140, 29, 64, 0.1) !important;
-            border-color: var(--unearte-secondary) !important;
-            color: var(--unearte-secondary) !important;
-        }
-        
-        /* Links */
-        .link-unearte {
-            color: var(--unearte-primary) !important;
-        }
-        
-        .link-unearte:hover {
-            color: var(--unearte-secondary) !important;
-            text-decoration: underline;
-        }
-        
-        /* Formularios */
-        .form-control:focus {
-            border-color: var(--unearte-primary) !important;
-            box-shadow: 0 0 0 0.2rem rgba(26, 71, 42, 0.25) !important;
-        }
-        
-        .form-select:focus {
-            border-color: var(--unearte-primary) !important;
-            box-shadow: 0 0 0 0.2rem rgba(26, 71, 42, 0.25) !important;
-        }
-        
-        /* Tabs */
-        .nav-tabs .nav-link.active,
-        .nav-tabs .nav-item.show .nav-link {
-            color: var(--unearte-primary) !important;
-            background-color: white !important;
-            border-color: var(--unearte-primary) var(--unearte-primary) transparent !important;
-        }
-        
-        .nav-tabs .nav-link:hover,
-        .nav-tabs .nav-link:focus {
-            color: var(--unearte-secondary) !important;
-        }
-        
-        /* Tablas */
-        .table-unearte {
-            --bs-table-bg: transparent;
-            --bs-table-accent-bg: rgba(26, 71, 42, 0.05);
-            --bs-table-striped-bg: rgba(26, 71, 42, 0.03);
-            --bs-table-active-bg: rgba(26, 71, 42, 0.1);
-            --bs-table-hover-bg: rgba(26, 71, 42, 0.075);
-            --bs-table-border-color: rgba(26, 71, 42, 0.1);
-        }
-        
-        .table-unearte thead th {
-            background-color: rgba(26, 71, 42, 0.1) !important;
-            border-bottom-color: var(--unearte-primary) !important;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/unearte-styles.css' %}">
 </head>
 <body>
     <!-- Barra de navegación con logo de UNEARTE -->
@@ -229,6 +47,7 @@
         {% if messages %}
             {% for message in messages %}
                 {% if message.tags == 'success' %}
+
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {% elif message.tags == 'error' %}
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -248,6 +67,42 @@
         {% block content %}
         {% endblock %}
     </div>
+
+    <!-- Footer -->
+    <footer class="footer-unearte mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>Universidad Nacional Experimental en las Artes</h5>
+                    <p class="mb-0">Instituto Universitario de Arte "Caracas"</p>
+                    <p class="mb-0">Sistema Médico</p>
+                </div>
+                
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'pacientes:index' %}" class="text-decoration-none text-light">Pacientes</a></li>
+                        <li><a href="{% url 'citas:index' %}" class="text-decoration-none text-light">Citas</a></li>
+                        <li><a href="{% url 'historiales:index' %}" class="text-decoration-none text-light">Historiales</a></li>
+                        <li><a href="{% url 'inventario:index' %}" class="text-decoration-none text-light">Inventarios</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-4">
+                    <h5>Contacto</h5>
+                    <p class="mb-0"><i class="bi bi-geo-alt me-2"></i> Caracas, Venezuela</p>
+                    <p class="mb-0"><i class="bi bi-telephone me-2"></i> +58 (XXX) XXX-XXXX</p>
+                    <p class="mb-0"><i class="bi bi-envelope me-2"></i> test@unearte.edu.ve</p>
+                </div>
+            </div>
+            
+            <hr class="my-4 bg-light">
+            
+            <div class="text-center">
+                <p class="mb-0">&copy; {% now "Y" %} Sistema Médico - Universidad de Caracas. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,5 +1,5 @@
-<div class="card shadow-lg">
-    <div class="card-header bg-primary text-white text-center">
+<div class="card card-unearte shadow-lg">
+    <div class="card-header card-header-unearte text-white text-center">
         <h3 class="card-title mb-0">
             {% if form.instance.pk %}<i class="bi bi-pencil-square me-2"></i>{% else %}<i class="bi bi-plus-circle me-2"></i>{% endif %}
             {% block form_title %}{% endblock %}
@@ -50,7 +50,7 @@
                 <a href="{% block cancel_url %}{% endblock %}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-return-left me-1"></i> Cancelar
                 </a>
-                <button type="submit" class="btn btn-primary btn-lg px-4">
+                <button type="submit" class="btn btn-unearte-primary btn-lg px-4">
                     <i class="bi bi-save me-1"></i> {% block submit_text %}Guardar{% endblock %}
                 </button>
             </div>
