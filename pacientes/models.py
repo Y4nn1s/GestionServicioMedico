@@ -14,18 +14,9 @@ class TipoDocumento(models.Model):
         verbose_name = 'Tipo de Documento'
         verbose_name_plural = 'Tipos de Documento'
 
-class Genero(models.Model):
-    nombre = models.CharField(max_length=20, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return self.nombre
-    
-    class Meta:
-        db_table = 'generos'
-        verbose_name = 'Género'
-        verbose_name_plural = 'Géneros'
+class Genero(models.TextChoices):
+    MASCULINO = 'M', 'Masculino'
+    FEMENINO = 'F', 'Femenino'
 
 class Pais(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -41,7 +32,7 @@ class Pais(models.Model):
         verbose_name = 'País'
         verbose_name_plural = 'Países'
 
-class Departamento(models.Model):
+class Estado(models.Model):
     nombre = models.CharField(max_length=100)
     pais = models.ForeignKey(Pais, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -51,23 +42,23 @@ class Departamento(models.Model):
         return f"{self.nombre}, {self.pais.nombre}"
     
     class Meta:
-        db_table = 'departamentos'
+        db_table = 'estados'
         unique_together = ('nombre', 'pais')
-        verbose_name = 'Departamento'
-        verbose_name_plural = 'Departamentos'
+        verbose_name = 'Estado'
+        verbose_name_plural = 'Estados'
 
 class Ciudad(models.Model):
     nombre = models.CharField(max_length=100)
-    departamento = models.ForeignKey(Departamento, on_delete=models.CASCADE)
+    estado = models.ForeignKey(Estado, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.nombre}, {self.departamento.nombre}"
+        return f"{self.nombre}, {self.estado.nombre}"
     
     class Meta:
         db_table = 'ciudades'
-        unique_together = ('nombre', 'departamento')
+        unique_together = ('nombre', 'estado')
         verbose_name = 'Ciudad'
         verbose_name_plural = 'Ciudades'
 
@@ -86,12 +77,16 @@ class TipoTelefono(models.Model):
         verbose_name_plural = 'Tipos de Teléfono'
 
 class Paciente(models.Model):
-    tipo_documento = models.ForeignKey(TipoDocumento, on_delete=models.CASCADE)
-    numero_documento = models.CharField(max_length=20)
+    # Documento fijo a Cédula de Identidad Venezolana (8 caracteres máximo)
+    numero_documento = models.CharField(max_length=8, unique=True)
     nombre = models.CharField(max_length=255)
     apellido = models.CharField(max_length=255)
     fecha_nacimiento = models.DateField()
-    genero = models.ForeignKey(Genero, on_delete=models.CASCADE)
+    genero = models.CharField(
+        max_length=1,
+        choices=Genero.choices,
+        default=Genero.MASCULINO
+    )
     email = models.EmailField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -109,7 +104,6 @@ class Paciente(models.Model):
     
     class Meta:
         db_table = 'pacientes'
-        unique_together = ('tipo_documento', 'numero_documento')
         indexes = [
             models.Index(fields=['apellido', 'nombre']),
             models.Index(fields=['fecha_nacimiento']),
@@ -118,11 +112,10 @@ class Paciente(models.Model):
         verbose_name_plural = 'Pacientes'
 
 class Direccion(models.Model):
-    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='direcciones')
+    paciente = models.OneToOneField(Paciente, on_delete=models.CASCADE, related_name='direccion')
     ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE)
     direccion = models.CharField(max_length=255)
     codigo_postal = models.CharField(max_length=10, blank=True, null=True)
-    es_principal = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

@@ -2,8 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Paciente, TipoDocumento, Genero, Pais, Departamento, Ciudad, Direccion, Telefono, TipoTelefono
-from .forms import PacienteForm
+from .models import Paciente, TipoDocumento, Estado, Ciudad, Direccion, Telefono, TipoTelefono, Pais
+from .forms import PacienteForm, DireccionFormSet, TelefonoFormSet
+from .forms import DireccionForm, TelefonoForm
 
 def index(request):
     pacientes_list = Paciente.objects.all().order_by('apellido', 'nombre')
@@ -14,19 +15,37 @@ def index(request):
 
 def create(request):
     if request.method == 'POST':
-        form = PacienteForm(request.POST)
-        if form.is_valid():
-            paciente = form.save()
+        paciente_form = PacienteForm(request.POST)
+        direccion_formset = DireccionFormSet(request.POST)
+        telefono_formset = TelefonoFormSet(request.POST)
+        
+        if paciente_form.is_valid() and direccion_formset.is_valid() and telefono_formset.is_valid():
+            paciente = paciente_form.save()
+            direccion_formset.instance = paciente
+            direccion_formset.save()
+            telefono_formset.instance = paciente
+            telefono_formset.save()
             messages.success(request, 'Paciente creado correctamente.')
             return redirect('pacientes:index')
     else:
-        form = PacienteForm()
-    return render(request, 'pacientes/create.html', {'form': form})
+        paciente_form = PacienteForm()
+        direccion_formset = DireccionFormSet()
+        telefono_formset = TelefonoFormSet()
+    
+    # Obtener datos para los selects dinámicos
+    paises = Pais.objects.all().order_by('nombre')
+    
+    return render(request, 'pacientes/create.html', {
+        'form': paciente_form,
+        'direccion_formset': direccion_formset,
+        'telefono_formset': telefono_formset,
+        'paises': paises,
+    })
 
 def show(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
-    direcciones = Direccion.objects.filter(paciente=paciente)
-    telefonos = Telefono.objects.filter(paciente=paciente)
+    direcciones = Direccion.objects.filter(paciente=paciente).select_related('ciudad__estado__pais')
+    telefonos = Telefono.objects.filter(paciente=paciente).select_related('tipo_telefono')
     return render(request, 'pacientes/show.html', {
         'paciente': paciente,
         'direcciones': direcciones,
@@ -36,14 +55,31 @@ def show(request, paciente_id):
 def edit(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
     if request.method == 'POST':
-        form = PacienteForm(request.POST, instance=paciente)
-        if form.is_valid():
-            form.save()
+        paciente_form = PacienteForm(request.POST, instance=paciente)
+        direccion_formset = DireccionFormSet(request.POST, instance=paciente)
+        telefono_formset = TelefonoFormSet(request.POST, instance=paciente)
+        
+        if paciente_form.is_valid() and direccion_formset.is_valid() and telefono_formset.is_valid():
+            paciente_form.save()
+            direccion_formset.save()
+            telefono_formset.save()
             messages.success(request, 'Paciente actualizado correctamente.')
             return redirect('pacientes:index')
     else:
-        form = PacienteForm(instance=paciente)
-    return render(request, 'pacientes/edit.html', {'form': form, 'paciente': paciente})
+        paciente_form = PacienteForm(instance=paciente)
+        direccion_formset = DireccionFormSet(instance=paciente)
+        telefono_formset = TelefonoFormSet(instance=paciente)
+    
+    # Obtener datos para los selects dinámicos
+    paises = Pais.objects.all().order_by('nombre')
+    
+    return render(request, 'pacientes/edit.html', {
+        'form': paciente_form,
+        'direccion_formset': direccion_formset,
+        'telefono_formset': telefono_formset,
+        'paciente': paciente,
+        'paises': paises,
+    })
 
 def destroy(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
@@ -72,3 +108,14 @@ def search(request):
         'pacientes': pacientes_page,
         'query': query
     })
+
+# Vistas AJAX para cargar datos dinámicamente
+def cargar_estados(request):
+    pais_id = request.GET.get('pais_id')
+    estados = Estado.objects.filter(pais_id=pais_id).order_by('nombre')
+    return render(request, 'pacientes/dropdown_list_options.html', {'opciones': estados})
+
+def cargar_ciudades(request):
+    estado_id = request.GET.get('estado_id')
+    ciudades = Ciudad.objects.filter(estado_id=estado_id).order_by('nombre')
+    return render(request, 'pacientes/dropdown_list_options.html', {'opciones': ciudades})

@@ -10,4 +10,7 @@ urlpatterns = [
     path('<int:paciente_id>/edit/', views.edit, name='edit'),
     path('<int:paciente_id>/destroy/', views.destroy, name='destroy'),
     path('search/', views.search, name='search'),
+    # URLs AJAX para cargar datos dinámicamente
+    path('ajax/cargar-estados/', views.cargar_estados, name='cargar_estados'),
+    path('ajax/cargar-ciudades/', views.cargar_ciudades, name='cargar_ciudades'),
 ]
