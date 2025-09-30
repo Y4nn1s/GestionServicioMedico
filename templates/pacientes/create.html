@@ -28,6 +28,7 @@
                                         {{ form.nombre.errors }}
                                     </div>
                                 {% endif %}
+                                <div class="form-text">Máximo 30 caracteres, solo letras y espacios</div>
                             </div>
                         </div>
                         
@@ -42,6 +43,7 @@
                                         {{ form.apellido.errors }}
                                     </div>
                                 {% endif %}
+                                <div class="form-text">Máximo 20 caracteres, solo letras y espacios</div>
                             </div>
                         </div>
                     </div>
@@ -58,6 +60,7 @@
                                         {{ form.numero_documento.errors }}
                                     </div>
                                 {% endif %}
+                                <div class="form-text">8 dígitos exactamente</div>
                             </div>
                         </div>
                         
@@ -108,7 +111,7 @@
                     
                     <hr>
                     
-                    <!-- Sección de Direcciones -->
+                    <!-- Sección de Dirección -->
                     <h5><i class="bi bi-geo-alt"></i> Dirección</h5>
                     <div id="direccion-formset">
                         {{ direccion_formset.management_form }}
@@ -181,6 +184,7 @@
                                                     {{ direccion_form.codigo_postal.errors }}
                                                 </div>
                                             {% endif %}
+                                            <div class="form-text">Solo dígitos</div>
                                         </div>
                                     </div>
                                 </div>
@@ -226,6 +230,7 @@
                                                     {{ telefono_form.numero.errors }}
                                                 </div>
                                             {% endif %}
+                                            <div class="form-text">Máximo 11 dígitos</div>
                                         </div>
                                     </div>
                                     

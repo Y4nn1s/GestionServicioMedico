@@ -28,6 +28,7 @@
                                         {{ form.nombre.errors }}
                                     </div>
                                 {% endif %}
+                                <div class="form-text">Máximo 30 caracteres, solo letras y espacios</div>
                             </div>
                         </div>
                         
@@ -42,26 +43,13 @@
                                         {{ form.apellido.errors }}
                                     </div>
                                 {% endif %}
+                                <div class="form-text">Máximo 20 caracteres, solo letras y espacios</div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="{{ form.tipo_documento.id_for_label }}" class="form-label">
-                                    {{ form.tipo_documento.label }}
-                                </label>
-                                {{ form.tipo_documento }}
-                                {% if form.tipo_documento.errors %}
-                                    <div class="text-danger">
-                                        {{ form.tipo_documento.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="{{ form.numero_documento.id_for_label }}" class="form-label">
                                     {{ form.numero_documento.label }}
@@ -72,10 +60,11 @@
                                         {{ form.numero_documento.errors }}
                                     </div>
                                 {% endif %}
+                                <div class="form-text">8 dígitos exactamente</div>
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">
                                     {{ form.fecha_nacimiento.label }}
@@ -122,8 +111,8 @@
                     
                     <hr>
                     
-                    <!-- Sección de Direcciones -->
-                    <h5><i class="bi bi-geo-alt"></i> Direcciones</h5>
+                    <!-- Sección de Dirección -->
+                    <h5><i class="bi bi-geo-alt"></i> Dirección</h5>
                     <div id="direccion-formset">
                         {{ direccion_formset.management_form }}
                         {% for direccion_form in direccion_formset %}
@@ -136,11 +125,10 @@
                                     <div class="col-md-4">
                                         <div class="mb-2">
                                             <label class="form-label">País</label>
-                                            <select class="form-control mb-2 pais-select" 
-                                                    data-departamento-url="{% url 'pacientes:cargar_departamentos' %}">
+                                            <select class="form-control mb-2 pais-select">
                                                 <option value="">Seleccione un país</option>
                                                 {% for pais in paises %}
-                                                    <option value="{{ pais.id }}" {% if direccion_form.instance.ciudad and direccion_form.instance.ciudad.departamento.pais.id == pais.id %}selected{% endif %}>{{ pais.nombre }}</option>
+                                                    <option value="{{ pais.id }}" {% if direccion_form.instance.ciudad and direccion_form.instance.ciudad.estado.pais.id == pais.id %}selected{% endif %}>{{ pais.nombre }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -148,13 +136,12 @@
                                     
                                     <div class="col-md-4">
                                         <div class="mb-2">
-                                            <label class="form-label">Departamento</label>
-                                            <select class="form-control mb-2 departamento-select" 
-                                                    data-ciudad-url="{% url 'pacientes:cargar_ciudades' %}">
-                                                <option value="">Seleccione un departamento</option>
+                                            <label class="form-label">Estado</label>
+                                            <select class="form-control mb-2 estado-select">
+                                                <option value="">Seleccione un estado</option>
                                                 {% if direccion_form.instance.ciudad %}
-                                                    {% for depto in direccion_form.instance.ciudad.departamento.pais.departamento_set.all %}
-                                                        <option value="{{ depto.id }}" {% if direccion_form.instance.ciudad.departamento.id == depto.id %}selected{% endif %}>{{ depto.nombre }}</option>
+                                                    {% for estado in direccion_form.instance.ciudad.estado.pais.estado_set.all %}
+                                                        <option value="{{ estado.id }}" {% if direccion_form.instance.ciudad.estado.id == estado.id %}selected{% endif %}>{{ estado.nombre }}</option>
                                                     {% endfor %}
                                                 {% endif %}
                                             </select>
@@ -202,31 +189,10 @@
                                                     {{ direccion_form.codigo_postal.errors }}
                                                 </div>
                                             {% endif %}
+                                            <div class="form-text">Solo dígitos</div>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="form-check mb-2">
-                                    {{ direccion_form.es_principal }}
-                                    <label for="{{ direccion_form.es_principal.id_for_label }}" class="form-check-label">
-                                        {{ direccion_form.es_principal.label }}
-                                    </label>
-                                </div>
-                                
-                                {% if direccion_form.DELETE %}
-                                    <div class="form-check">
-                                        {{ direccion_form.DELETE }}
-                                        <label for="{{ direccion_form.DELETE.id_for_label }}" class="form-check-label text-danger">
-                                            Eliminar esta dirección
-                                        </label>
-                                    </div>
-                                {% endif %}
-                                
-                                {% if direccion_form.non_field_errors %}
-                                    <div class="alert alert-danger">
-                                        {{ direccion_form.non_field_errors }}
-                                    </div>
-                                {% endif %}
                             </div>
                         {% endfor %}
                     </div>
@@ -269,6 +235,7 @@
                                                     {{ telefono_form.numero.errors }}
                                                 </div>
                                             {% endif %}
+                                            <div class="form-text">Máximo 11 dígitos</div>
                                         </div>
                                     </div>
                                     
@@ -282,19 +249,16 @@
                                     </div>
                                 </div>
                                 
-                                {% if telefono_form.DELETE %}
-                                    <div class="form-check">
-                                        {{ telefono_form.DELETE }}
-                                        <label for="{{ telefono_form.DELETE.id_for_label }}" class="form-check-label text-danger">
-                                            Eliminar este teléfono
-                                        </label>
-                                    </div>
-                                {% endif %}
-                                
                                 {% if telefono_form.non_field_errors %}
                                     <div class="alert alert-danger">
                                         {{ telefono_form.non_field_errors }}
                                     </div>
+                                {% endif %}
+                                
+                                {% if forloop.counter > 1 %}
+                                    <button type="button" class="btn btn-sm btn-danger btn-eliminar-telefono position-absolute top-0 end-0 m-2" title="Eliminar este teléfono">
+                                        <i class="bi bi-x"></i>
+                                    </button>
                                 {% endif %}
                             </div>
                         {% endfor %}
@@ -302,10 +266,6 @@
                     
                     <button type="button" id="agregar-telefono" class="btn btn-outline-primary btn-sm mb-3">
                         <i class="bi bi-plus-circle"></i> Agregar otro teléfono
-                    </button>
-                    
-                    <button type="button" id="eliminar-telefono" class="btn btn-outline-danger btn-sm mb-3 mx-2">
-                        <i class="bi bi-trash"></i> Eliminar último teléfono agregado
                     </button>
                     
                     <hr>
@@ -340,90 +300,133 @@ function cargarOpciones(select, url, datos) {
 }
 
 $(document).ready(function() {
-    // Manejar cambio de país para cargar departamentos
+    // Manejar cambio de país para cargar estados
     $(document).on('change', '.pais-select', function() {
         var paisId = $(this).val();
-        var departamentoSelect = $(this).closest('.direccion-form').find('.departamento-select');
+        var estadoSelect = $(this).closest('.direccion-form').find('.estado-select');
         var ciudadSelect = $(this).closest('.direccion-form').find('.ciudad-select');
         
         if (paisId) {
-            var url = $(this).data('departamento-url');
-            cargarOpciones(departamentoSelect, url, {'pais_id': paisId});
-            ciudadSelect.html('<option value="">Seleccione una ciudad</option>');
+            $.get("{% url 'pacientes:cargar_estados' %}", {'pais_id': paisId}, function(data) {
+                estadoSelect.html(data);
+                ciudadSelect.html('<option value="">Seleccione una ciudad</option>');
+            });
         } else {
-            departamentoSelect.html('<option value="">Seleccione un departamento</option>');
+            estadoSelect.html('<option value="">Seleccione un estado</option>');
             ciudadSelect.html('<option value="">Seleccione una ciudad</option>');
         }
     });
     
-    // Manejar cambio de departamento para cargar ciudades
-    $(document).on('change', '.departamento-select', function() {
-        var departamentoId = $(this).val();
+    // Manejar cambio de estado para cargar ciudades
+    $(document).on('change', '.estado-select', function() {
+        var estadoId = $(this).val();
         var ciudadSelect = $(this).closest('.direccion-form').find('.ciudad-select');
         
-        if (departamentoId) {
-            var url = $(this).data('ciudad-url');
-            cargarOpciones(ciudadSelect, url, {'departamento_id': departamentoId});
+        if (estadoId) {
+            $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': estadoId}, function(data) {
+                ciudadSelect.html(data);
+            });
         } else {
             ciudadSelect.html('<option value="">Seleccione una ciudad</option>');
         }
     });
     
     // Agregar nuevo teléfono
-    $('#agregar-telefono').click(function() {
+    $(document).on('click', '#agregar-telefono', function() {
         var formset = $('#telefono-formset');
-        var formIdx = $('#id_telefono_set-TOTAL_FORMS').val();
-        
-        // Crear nuevo formulario
-        var newForm = formset.find('.telefono-form').first().clone();
-        newForm.find('input,select,textarea').each(function() {
-            var name = $(this).attr('name').replace('-0-', '-' + formIdx + '-');
-            var id = $(this).attr('id').replace('_0_', '_' + formIdx + '_');
-            $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
-        });
-        newForm.find('label').each(function() {
-            var newFor = $(this).attr('for').replace('_0_', '_' + formIdx + '_');
-            $(this).attr('for', newFor);
-        });
-        
-        // Añadir el nuevo formulario
-        formset.append(newForm);
-        
-        // Incrementar el contador de formularios
-        $('#id_telefono_set-TOTAL_FORMS').val(parseInt(formIdx) + 1);
-    });
-    
-    // Eliminar último teléfono agregado
-    $('#eliminar-telefono').click(function() {
-        var formset = $('#telefono-formset');
-        var totalForms = $('#id_telefono_set-TOTAL_FORMS');
-        var formCount = parseInt(totalForms.val());
-        var initialForms = parseInt($('#id_telefono_set-INITIAL_FORMS').val());
-        
-        // Solo eliminar si hay más formularios de los iniciales
-        if (formCount > initialForms) {
-            // Eliminar el último formulario agregado
-            formset.find('.telefono-form').last().remove();
-            
-            // Decrementar el contador de formularios
-            totalForms.val(formCount - 1);
-        } else {
-            alert('No hay teléfonos adicionales para eliminar.');
+        var totalFormsInput = formset.find('input[name$="-TOTAL_FORMS"]').first();
+        if (!totalFormsInput.length) {
+            return;
         }
+        var formIdx = parseInt(totalFormsInput.val()) || 0;
+        
+        // Clonar el último formulario existente
+        var lastForm = formset.children('.telefono-form').last();
+        if (lastForm.length === 0) {
+            return;
+        }
+        
+        var newForm = lastForm.clone(true);
+        newForm.find('input,select,textarea').val('').prop('checked', false);
+        
+        // Actualizar nombres e IDs para el nuevo índice
+        newForm.find('[name], [id]').each(function() {
+            var $el = $(this);
+            ['name', 'id'].forEach(function(attr) {
+                var val = $el.attr(attr);
+                if (val) {
+                    val = val.replace(/-\d+-/g, '-' + formIdx + '-');
+                    $el.attr(attr, val);
+                }
+            });
+        });
+        
+        newForm.find('label[for]').each(function() {
+            var forVal = $(this).attr('for').replace(/-\d+-/g, '-' + formIdx + '-');
+            $(this).attr('for', forVal);
+        });
+        
+        // Añadir botón de eliminar solo a forms nuevos (índice >= 1)
+        if (formIdx >= 1) {
+            newForm.append('<button type="button" class="btn btn-sm btn-danger btn-eliminar-telefono position-absolute top-0 end-0 m-2" title="Eliminar este teléfono"><i class="bi bi-x"></i></button>');
+        }
+        
+        formset.append(newForm);
+        totalFormsInput.val(formIdx + 1);
+    });
+
+    // Eliminar teléfono
+    $('#telefono-formset').on('click', '.btn-eliminar-telefono', function(e) {
+        e.preventDefault();
+        var formToRemove = $(this).closest('.telefono-form');
+        var formset = $('#telefono-formset');
+        var totalFormsInput = formset.find('input[name$="-TOTAL_FORMS"]').first();
+        var initialFormsInput = formset.find('input[name$="-INITIAL_FORMS"]').first();
+        
+        if (!totalFormsInput.length || !initialFormsInput.length) {
+            return;
+        }
+        
+        var initialForms = parseInt(initialFormsInput.val()) || 0;
+        var currentTotal = parseInt(totalFormsInput.val()) || 0;
+        var idx = formset.children('.telefono-form').index(formToRemove);
+        
+        if (idx < initialForms) {
+            return; // No eliminar forms iniciales
+        }
+        
+        formToRemove.remove();
+        
+        // Reindexar forms restantes
+        formset.children('.telefono-form').each(function(newIdx) {
+            $(this).find('[name], [id]').each(function() {
+                var $el = $(this);
+                ['name', 'id'].forEach(function(attr) {
+                    var val = $el.attr(attr);
+                    if (val) {
+                        val = val.replace(/-\d+-/g, '-' + newIdx + '-');
+                        $el.attr(attr, val);
+                    }
+                });
+            });
+            $(this).find('label[for]').each(function() {
+                var forVal = $(this).attr('for').replace(/-\d+-/g, '-' + newIdx + '-');
+                $(this).attr('for', forVal);
+            });
+        });
+        
+        totalFormsInput.val(currentTotal - 1);
     });
     
-    // Configurar valores por defecto para UNEARTE (Venezuela)
+    // Configurar valores por defecto para Venezuela
     setTimeout(function() {
         $('.pais-select').each(function() {
             var $this = $(this);
-            // Seleccionar Venezuela automáticamente si no hay otro valor
-            if (!$this.val()) {
-                $this.find('option').each(function() {
-                    if ($(this).text() === 'Venezuela') {
-                        $this.val($(this).val()).trigger('change');
-                    }
-                });
-            }
+            $this.find('option').each(function() {
+                if ($(this).text() === 'Venezuela') {
+                    $this.val($(this).val()).trigger('change');
+                }
+            });
         });
     }, 500);
 });

@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
+from django.core.exceptions import ValidationError
 from .models import Paciente, TipoDocumento, Genero, Direccion, Telefono, Ciudad, Estado, Pais, TipoTelefono
 
 class PacienteForm(forms.ModelForm):
@@ -14,17 +15,35 @@ class PacienteForm(forms.ModelForm):
             'email',
         ]
         widgets = {
-            'numero_documento': forms.TextInput(attrs={'class': 'form-control'}),
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'apellido': forms.TextInput(attrs={'class': 'form-control'}),
-            'fecha_nacimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'numero_documento': forms.TextInput(attrs={
+                'class': 'form-control',
+                'maxlength': '8',
+                'placeholder': 'Ej: 12345678'
+            }),
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'maxlength': '30',
+                'placeholder': 'Ej: Juan Carlos'
+            }),
+            'apellido': forms.TextInput(attrs={
+                'class': 'form-control',
+                'maxlength': '20',
+                'placeholder': 'Ej: García López'
+            }),
+            'fecha_nacimiento': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
             'genero': forms.Select(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
         labels = {
-            'numero_documento': 'Número de Documento',
+            'numero_documento': 'Número de Cédula',
+            'nombre': 'Nombres',
+            'apellido': 'Apellidos',
             'fecha_nacimiento': 'Fecha de Nacimiento',
             'genero': 'Género',
+            'email': 'Correo Electrónico',
         }
 
     def __init__(self, *args, **kwargs):
@@ -32,6 +51,33 @@ class PacienteForm(forms.ModelForm):
         # Establecer valores predeterminados
         if not self.instance.pk:
             self.fields['genero'].initial = Genero.MASCULINO
+
+    def clean_numero_documento(self):
+        numero_documento = self.cleaned_data.get('numero_documento')
+        if numero_documento:
+            if not numero_documento.isdigit():
+                raise ValidationError('El número de cédula solo debe contener dígitos.')
+            if len(numero_documento) != 8:
+                raise ValidationError('El número de cédula debe tener exactamente 8 dígitos.')
+        return numero_documento
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre')
+        if nombre:
+            if not nombre.replace(' ', '').isalpha():
+                raise ValidationError('Los nombres solo deben contener letras y espacios.')
+            if len(nombre) > 30:
+                raise ValidationError('El nombre no debe exceder los 30 caracteres.')
+        return nombre
+
+    def clean_apellido(self):
+        apellido = self.cleaned_data.get('apellido')
+        if apellido:
+            if not apellido.replace(' ', '').isalpha():
+                raise ValidationError('Los apellidos solo deben contener letras y espacios.')
+            if len(apellido) > 20:
+                raise ValidationError('El apellido no debe exceder los 20 caracteres.')
+        return apellido
 
 class DireccionForm(forms.ModelForm):
     # Campo personalizado para selección jerárquica de ubicación
@@ -51,8 +97,15 @@ class DireccionForm(forms.ModelForm):
         fields = ['ciudad', 'direccion', 'codigo_postal']
         widgets = {
             'ciudad': forms.Select(attrs={'class': 'form-control mb-2 ciudad-select'}),
-            'direccion': forms.TextInput(attrs={'class': 'form-control mb-2'}),
-            'codigo_postal': forms.TextInput(attrs={'class': 'form-control mb-2'}),
+            'direccion': forms.TextInput(attrs={
+                'class': 'form-control mb-2',
+                'placeholder': 'Ej: Av. Principal, Calle 1, Casa 123'
+            }),
+            'codigo_postal': forms.TextInput(attrs={
+                'class': 'form-control mb-2',
+                'placeholder': 'Ej: 1010',
+                'maxlength': '10'
+            }),
         }
         labels = {
             'direccion': 'Dirección',
@@ -74,6 +127,16 @@ class DireccionForm(forms.ModelForm):
             self.fields['estado'].queryset = Estado.objects.filter(pais=pais)
             self.fields['ciudad'].queryset = Ciudad.objects.filter(estado=estado)
             self.fields['pais'].initial = pais
+        else:
+            # Inicializar querysets vacíos para nuevos formularios
+            self.fields['estado'].queryset = Estado.objects.none()
+            self.fields['ciudad'].queryset = Ciudad.objects.none()
+
+    def clean_codigo_postal(self):
+        codigo_postal = self.cleaned_data.get('codigo_postal')
+        if codigo_postal and not codigo_postal.isdigit():
+            raise ValidationError('El código postal solo debe contener dígitos.')
+        return codigo_postal
 
     def clean(self):
         cleaned_data = super().clean()
@@ -82,11 +145,11 @@ class DireccionForm(forms.ModelForm):
         
         # Validar que si hay dirección, debe haber ciudad
         if direccion and not ciudad:
-            raise forms.ValidationError("Debe seleccionar una ciudad cuando ingresa una dirección.")
+            raise ValidationError("Debe seleccionar una ciudad cuando ingresa una dirección.")
             
         # Validar que si hay ciudad, debe haber dirección
         if ciudad and not direccion:
-            raise forms.ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
+            raise ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
             
         return cleaned_data
 
@@ -96,7 +159,11 @@ class TelefonoForm(forms.ModelForm):
         fields = ['tipo_telefono', 'numero', 'es_principal']
         widgets = {
             'tipo_telefono': forms.Select(attrs={'class': 'form-control mb-2'}),
-            'numero': forms.TextInput(attrs={'class': 'form-control mb-2'}),
+            'numero': forms.TextInput(attrs={
+                'class': 'form-control mb-2',
+                'placeholder': 'Ej: 04121234567',
+                'maxlength': '11'
+            }),
             'es_principal': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
@@ -104,6 +171,15 @@ class TelefonoForm(forms.ModelForm):
             'numero': 'Número',
             'es_principal': 'Teléfono Principal',
         }
+
+    def clean_numero(self):
+        numero = self.cleaned_data.get('numero')
+        if numero:
+            if not numero.isdigit():
+                raise ValidationError('El número de teléfono solo debe contener dígitos.')
+            if len(numero) > 11:
+                raise ValidationError('El número de teléfono no debe exceder 11 dígitos.')
+        return numero
 
 # Formsets para manejar múltiples direcciones y teléfonos
 DireccionFormSet = inlineformset_factory(
