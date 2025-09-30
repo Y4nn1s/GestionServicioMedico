@@ -2,6 +2,9 @@
 .env
 .env.local
 .env.*
+QWEN.md
+.qwen
+.github
 
 # Carpetas de Python
 __pycache__/
@@ -14,6 +17,7 @@ venv/
 env.bak/
 venv.bak/
 medico/
+pacientes/management/commands
 
 # Carpetas de Django
 db.sqlite3
