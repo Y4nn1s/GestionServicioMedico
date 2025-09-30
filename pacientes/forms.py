@@ -3,7 +3,14 @@ from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
 from .models import Paciente, TipoDocumento, Genero, Direccion, Telefono, Ciudad, Estado, Pais, TipoTelefono
 
+
 class PacienteForm(forms.ModelForm):
+    confirmar_email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Repita el correo electrónico'}),
+        label="Confirmar Email"
+    )
+    
     class Meta:
         model = Paciente
         fields = [
@@ -34,8 +41,9 @@ class PacienteForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'date'
             }),
+
             'genero': forms.Select(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ejemplo@correo.com'}),
         }
         labels = {
             'numero_documento': 'Número de Cédula',
@@ -48,6 +56,7 @@ class PacienteForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         # Establecer valores predeterminados
         if not self.instance.pk:
             self.fields['genero'].initial = Genero.MASCULINO

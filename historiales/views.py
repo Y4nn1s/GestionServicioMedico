@@ -11,6 +11,8 @@ def index(request):
     historiales = paginator.get_page(page_number)
     return render(request, 'historiales/index.html', {'historiales': historiales})
 
+
+@transaction.atomic
 def create(request):
     if request.method == 'POST':
         form = HistorialMedicoForm(request.POST)
@@ -20,30 +22,60 @@ def create(request):
             return redirect('historiales:index')
     else:
         form = HistorialMedicoForm()
+    
     return render(request, 'historiales/create.html', {'form': form})
 
 def show(request, historial_id):
-    historial = get_object_or_404(HistorialMedico, id=historial_id)
-    return render(request, 'historiales/show.html', {'historial': historial})
+    try:
+        historial = get_object_or_404(HistorialMedico, id=historial_id)
+        return render(request, 'historiales/show.html', {'historial': historial})
+    except Exception as e:
+        messages.error(request, f'Error al cargar el historial: {str(e)}')
+        return redirect('historiales:index')
 
+@transaction.atomic
 def edit(request, historial_id):
     historial = get_object_or_404(HistorialMedico, id=historial_id)
+    
     if request.method == 'POST':
         form = HistorialMedicoForm(request.POST, instance=historial)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Historial médico actualizado correctamente.')
-            return redirect('historiales:index')
+            try:
+                form.save()
+                messages.success(request, 'Historial médico actualizado correctamente.')
+                return redirect('historiales:index')
+                
+            except ValidationError as e:
+                messages.error(request, f'Error de validación: {", ".join(e.messages)}')
+            except IntegrityError as e:
+                messages.error(request, 'Error de integridad de datos.')
+            except Exception as e:
+                messages.error(request, f'Error inesperado al actualizar el historial: {str(e)}')
+                raise
+        else:
+            messages.error(request, 'Por favor, corrija los errores en el formulario.')
     else:
         form = HistorialMedicoForm(instance=historial)
+    
     return render(request, 'historiales/edit.html', {'form': form, 'historial': historial})
 
+@transaction.atomic
 def destroy(request, historial_id):
     historial = get_object_or_404(HistorialMedico, id=historial_id)
+    
     if request.method == 'POST':
-        historial.delete()
-        messages.success(request, 'Historial médico eliminado correctamente.')
-        return redirect('historiales:index')
+        try:
+            # Guardar información para el mensaje antes de eliminar
+            paciente_info = str(historial.paciente)
+            historial.delete()
+            
+            messages.success(request, f'Historial médico de {paciente_info} eliminado correctamente.')
+            return redirect('historiales:index')
+            
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el historial médico: {str(e)}')
+            return redirect('historiales:show', historial_id=historial_id)
+    
     return render(request, 'historiales/destroy.html', {'historial': historial})
 
 def search(request):
