@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.db import transaction
 from .models import Paciente, TipoDocumento, Estado, Ciudad, Direccion, Telefono, TipoTelefono, Pais
 from .forms import PacienteForm, DireccionFormSet, TelefonoFormSet
 from .forms import DireccionForm, TelefonoForm
