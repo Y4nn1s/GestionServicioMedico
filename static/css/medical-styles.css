@@ -42,6 +42,13 @@ body.medical-body {
     display: flex;
     align-items: center;
     color: white !important;
+    transition: opacity 0.3s ease;
+    text-decoration: none !important;
+}
+
+.navbar-brand-medical:hover {
+    opacity: 0.85;
+    text-decoration: none !important;
 }
 
 .navbar-brand-medical img.medical-logo {
