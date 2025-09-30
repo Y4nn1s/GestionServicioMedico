@@ -13,6 +13,8 @@ def index(request):
     pacientes = paginator.get_page(page_number)
     return render(request, 'pacientes/index.html', {'pacientes': pacientes})
 
+
+@transaction.atomic
 def create(request):
     if request.method == 'POST':
         paciente_form = PacienteForm(request.POST)
@@ -52,8 +54,11 @@ def show(request, paciente_id):
         'telefonos': telefonos
     })
 
+
+@transaction.atomic
 def edit(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
+    
     if request.method == 'POST':
         paciente_form = PacienteForm(request.POST, instance=paciente)
         direccion_formset = DireccionFormSet(request.POST, instance=paciente)
@@ -81,12 +86,24 @@ def edit(request, paciente_id):
         'paises': paises,
     })
 
+
+@transaction.atomic
 def destroy(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
+    
     if request.method == 'POST':
-        paciente.delete()
-        messages.success(request, 'Paciente eliminado correctamente.')
-        return redirect('pacientes:index')
+        try:
+            # Guardar información para el mensaje antes de eliminar
+            paciente_info = f"{paciente.nombre} {paciente.apellido}"
+            paciente.delete()
+            
+            messages.success(request, f'Paciente {paciente_info} eliminado correctamente.')
+            return redirect('pacientes:index')
+            
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el paciente: {str(e)}')
+            return redirect('pacientes:show', paciente_id=paciente_id)
+    
     return render(request, 'pacientes/destroy.html', {'paciente': paciente})
 
 def search(request):
