@@ -189,7 +189,7 @@
                                                     {{ direccion_form.codigo_postal.errors }}
                                                 </div>
                                             {% endif %}
-                                            <div class="form-text">Solo dígitos</div>
+                                            <div class="form-text">Máximo 4 dígitos</div>
                                         </div>
                                     </div>
                                 </div>
@@ -235,7 +235,7 @@
                                                     {{ telefono_form.numero.errors }}
                                                 </div>
                                             {% endif %}
-                                            <div class="form-text">Máximo 11 dígitos</div>
+                                            <div class="form-text">Exactamente 11 dígitos</div>
                                         </div>
                                     </div>
                                     
@@ -428,6 +428,23 @@ $(document).ready(function() {
                 }
             });
         });
+        
+        // Después de que se haya cargado Venezuela, cargar automáticamente las ciudades de Distrito Capital
+        setTimeout(function() {
+            $('.estado-select').each(function() {
+                var $this = $(this);
+                // Si ya hay un estado seleccionado (Distrito Capital), cargar sus ciudades
+                if ($this.val()) {
+                    var estadoId = $this.val();
+                    var ciudadSelect = $this.closest('.direccion-form').find('.ciudad-select');
+                    if (ciudadSelect.length && !ciudadSelect.find('option[value!=""]').length) {
+                        $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': estadoId}, function(data) {
+                            ciudadSelect.html('<option value="">Seleccione una ciudad</option>' + data);
+                        });
+                    }
+                }
+            });
+        }, 1000);
     }, 500);
 });
 </script>

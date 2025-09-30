@@ -115,7 +115,7 @@ class Direccion(models.Model):
     paciente = models.OneToOneField(Paciente, on_delete=models.CASCADE, related_name='direccion')
     ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE)
     direccion = models.CharField(max_length=255)
-    codigo_postal = models.CharField(max_length=10, blank=True, null=True)
+    codigo_postal = models.CharField(max_length=4, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -130,7 +130,7 @@ class Direccion(models.Model):
 class Telefono(models.Model):
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='telefonos')
     tipo_telefono = models.ForeignKey(TipoTelefono, on_delete=models.CASCADE)
-    numero = models.CharField(max_length=20)
+    numero = models.CharField(max_length=11)
     es_principal = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

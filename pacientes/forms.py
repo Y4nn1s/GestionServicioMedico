@@ -104,7 +104,7 @@ class DireccionForm(forms.ModelForm):
             'codigo_postal': forms.TextInput(attrs={
                 'class': 'form-control mb-2',
                 'placeholder': 'Ej: 1010',
-                'maxlength': '10'
+                'maxlength': '4'
             }),
         }
         labels = {
@@ -134,8 +134,11 @@ class DireccionForm(forms.ModelForm):
 
     def clean_codigo_postal(self):
         codigo_postal = self.cleaned_data.get('codigo_postal')
-        if codigo_postal and not codigo_postal.isdigit():
-            raise ValidationError('El código postal solo debe contener dígitos.')
+        if codigo_postal:
+            if not codigo_postal.isdigit():
+                raise ValidationError('El código postal solo debe contener dígitos.')
+            if len(codigo_postal) > 4:
+                raise ValidationError('El código postal no debe exceder los 4 dígitos.')
         return codigo_postal
 
     def clean(self):
@@ -175,10 +178,10 @@ class TelefonoForm(forms.ModelForm):
     def clean_numero(self):
         numero = self.cleaned_data.get('numero')
         if numero:
+            if len(numero) != 11:
+                raise ValidationError('El número de teléfono debe tener exactamente 11 dígitos.')
             if not numero.isdigit():
                 raise ValidationError('El número de teléfono solo debe contener dígitos.')
-            if len(numero) > 11:
-                raise ValidationError('El número de teléfono no debe exceder 11 dígitos.')
         return numero
 
 # Formsets para manejar múltiples direcciones y teléfonos
