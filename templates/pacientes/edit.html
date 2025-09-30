@@ -3,8 +3,8 @@
 {% block title %}Editar Paciente{% endblock %}
 
 {% block content %}
-<div class="card shadow-lg">
-    <div class="card-header card-header-unearte text-white text-center">
+<div class="card card-medical">
+    <div class="card-header-medical text-white text-center">
         <h3 class="card-title mb-0">
             <i class="bi bi-pencil-square me-2"></i>Editar Paciente
         </h3>
@@ -35,7 +35,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.tipo_documento.id_for_label }}" class="form-label fw-bold">
                                 {{ form.tipo_documento.label }}
-                                {% if form.tipo_documento.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if form.tipo_documento.field.required %}<span class="text-danger">*{% endif %}
                             </label>
                             {{ form.tipo_documento }}
                             {% if form.tipo_documento.errors %}
@@ -53,7 +53,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.numero_documento.id_for_label }}" class="form-label fw-bold">
                                 {{ form.numero_documento.label }}
-                                {% if form.numero_documento.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if form.numero_documento.field.required %}<span class="text-danger">*{% endif %}
                             </label>
                             {{ form.numero_documento }}
                             {% if form.numero_documento.errors %}
@@ -81,7 +81,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.nombre.id_for_label }}" class="form-label fw-bold">
                                 {{ form.nombre.label }}
-                                {% if form.nombre.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if form.nombre.field.required %}<span class="text-danger">*{% endif %}
                             </label>
                             {{ form.nombre }}
                             {% if form.nombre.errors %}
@@ -99,7 +99,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.apellido.id_for_label }}" class="form-label fw-bold">
                                 {{ form.apellido.label }}
-                                {% if form.apellido.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if form.apellido.field.required %}<span class="text-danger">*{% endif %}
                             </label>
                             {{ form.apellido }}
                             {% if form.apellido.errors %}
@@ -119,7 +119,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label fw-bold">
                                 {{ form.fecha_nacimiento.label }}
-                                {% if form.fecha_nacimiento.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if form.fecha_nacimiento.field.required %}<span class="text-danger">*{% endif %}
                             </label>
                             {{ form.fecha_nacimiento }}
                             {% if form.fecha_nacimiento.errors %}
@@ -137,7 +137,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.genero.id_for_label }}" class="form-label fw-bold">
                                 {{ form.genero.label }}
-                                {% if form.genero.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if form.genero.field.required %}<span class="text-danger">*{% endif %}
                             </label>
                             {{ form.genero }}
                             {% if form.genero.errors %}
@@ -165,7 +165,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">
                                 {{ form.email.label }}
-                                {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if form.email.field.required %}<span class="text-danger">*{% endif %}
                             </label>
                             {{ form.email }}
                             {% if form.email.errors %}
@@ -183,7 +183,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.confirmar_email.id_for_label }}" class="form-label fw-bold">
                                 {{ form.confirmar_email.label }}
-                                {% if form.confirmar_email.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if form.confirmar_email.field.required %}<span class="text-danger">*{% endif %}
                             </label>
                             {{ form.confirmar_email }}
                             {% if form.confirmar_email.errors %}
@@ -202,10 +202,10 @@
             </div>
 
             <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                <a href="{% url 'pacientes:index' %}" class="btn btn-outline-unearte-primary btn-lg">
+                <a href="{% url 'pacientes:index' %}" class="btn btn-outline-medical btn-lg">
                     <i class="bi bi-x-circle me-1"></i> Cancelar
                 </a>
-                <button type="submit" class="btn btn-unearte-primary btn-lg px-4">
+                <button type="submit" class="btn btn-medical-primary btn-lg px-4">
                     <i class="bi bi-check-circle me-1"></i> Actualizar Paciente
                 </button>
             </div>

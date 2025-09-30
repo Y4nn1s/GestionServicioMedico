@@ -4,9 +4,9 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="text-unearte-primary">Detalles del Paciente</h1>
+    <h1 class="dashboard-title">Detalles del Paciente</h1>
     <div>
-        <a href="{% url 'pacientes:edit' paciente.id %}" class="btn btn-unearte-secondary me-2">
+        <a href="{% url 'pacientes:edit' paciente.id %}" class="btn btn-outline-medical me-2">
             <i class="bi bi-pencil"></i> Editar
         </a>
         <a href="{% url 'pacientes:destroy' paciente.id %}" class="btn btn-outline-danger">
@@ -17,8 +17,8 @@
 
 <div class="row">
     <div class="col-md-8">
-        <div class="card card-unearte mb-4">
-            <div class="card-header card-header-unearte">
+        <div class="card card-medical mb-4">
+            <div class="card-header-medical">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-person"></i> Información Personal
                 </h5>
@@ -91,8 +91,8 @@
     </div>
     
     <div class="col-md-4">
-        <div class="card card-unearte mb-4">
-            <div class="card-header card-header-unearte">
+        <div class="card card-medical mb-4">
+            <div class="card-header-medical">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-telephone"></i> Teléfonos
                 </h5>
@@ -104,7 +104,7 @@
                             <li class="list-group-item">
                                 <strong>{{ telefono.tipo_telefono }}:</strong> {{ telefono.numero }}
                                 {% if telefono.es_principal %}
-                                    <span class="badge bg-unearte-primary">Principal</span>
+                                    <span class="badge bg-primary">Principal</span>
                                 {% endif %}
                             </li>
                         {% endfor %}
@@ -115,8 +115,8 @@
             </div>
         </div>
         
-        <div class="card card-unearte">
-            <div class="card-header card-header-unearte">
+        <div class="card card-medical">
+            <div class="card-header-medical">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-geo-alt"></i> Direcciones
                 </h5>
@@ -128,7 +128,7 @@
                             <li class="list-group-item">
                                 {{ direccion.direccion }}, {{ direccion.ciudad }}
                                 {% if direccion.es_principal %}
-                                    <span class="badge bg-unearte-primary">Principal</span>
+                                    <span class="badge bg-primary">Principal</span>
                                 {% endif %}
                             </li>
                         {% endfor %}
@@ -142,7 +142,7 @@
 </div>
 
 <div class="mt-4">
-    <a href="{% url 'pacientes:index' %}" class="btn btn-outline-unearte-primary">
+    <a href="{% url 'pacientes:index' %}" class="btn btn-outline-medical">
         <i class="bi bi-arrow-left"></i> Volver al listado
     </a>
 </div>
