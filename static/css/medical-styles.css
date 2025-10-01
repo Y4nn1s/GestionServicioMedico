@@ -188,7 +188,7 @@ body.medical-body {
 }
 
 .table-medical thead th {
-    background-color: var(--medical-primary);
+    background-color: var(--medical-header);
     color: white;
     border: none;
     font-weight: 600;
