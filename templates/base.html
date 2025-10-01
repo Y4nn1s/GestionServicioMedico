@@ -22,9 +22,23 @@
                 <img src="{% static 'img/logo.png' %}" alt="UNEATLÁNTICO" onerror="this.style.display='none'" class="medical-logo">
                 <span class="ms-2 fw-bold text-white">Sistema Médico</span>
             </a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <!-- Barra de búsqueda global centrada -->
+            <div class="d-flex justify-content-center flex-grow-1">
+                <form class="search-form-global" action="{% url 'core:search_all' %}" method="GET" role="search">
+                    <div class="search-input-container">
+                        <input type="text" name="q" class="search-input-global" placeholder="Buscar pacientes, citas, historiales..." aria-label="Buscar" autocomplete="off">
+                        <button class="search-button-global" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
