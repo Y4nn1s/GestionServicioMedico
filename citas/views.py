@@ -12,8 +12,10 @@ from .models import Cita, EstadoCita, TipoCita, MotivoCita, NotaCita, TipoNota
 from .forms import CitaForm
 
 def index(request):
-    citas_list = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado')
-    paginator = Paginator(citas_list, 10)
+  
+    citas_list = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
+    paginator = Paginator(citas_list, 10)  # Mostrar 10 citas por página
+
     page_number = request.GET.get('page')
     citas = paginator.get_page(page_number)
     return render(request, 'citas/index.html', {'citas': citas})
@@ -127,28 +129,24 @@ def destroy(request, cita_id):
     return render(request, 'citas/destroy.html', {'cita': cita})
 
 def search(request):
-    try:
-        query = request.GET.get('q', '')
-        citas = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado')
-        
-        if query:
-            citas = citas.filter(
-                Q(paciente__nombre__icontains=query) |
-                Q(paciente__apellido__icontains=query) |
-                Q(motivo__nombre__icontains=query)
-            )
-        
-        paginator = Paginator(citas, 10)
-        page_number = request.GET.get('page')
-        citas_page = paginator.get_page(page_number)
-        
-        return render(request, 'citas/search.html', {
-            'citas': citas_page,
-            'query': query
-        })
-    except Exception as e:
-        messages.error(request, f'Error en la búsqueda: {str(e)}')
-        return redirect('citas:index')
+    query = request.GET.get('q', '')
+    citas = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
+    
+    if query:
+        citas = citas.filter(
+            Q(paciente__nombre__icontains=query) |
+            Q(paciente__apellido__icontains=query) |
+            Q(motivo__nombre__icontains=query)
+        )
+    
+    paginator = Paginator(citas, 10)
+    page_number = request.GET.get('page')
+    citas_page = paginator.get_page(page_number)
+    
+    return render(request, 'citas/search.html', {
+        'citas': citas_page,
+        'query': query
+    })
 
 def citas_hoy(request):
     try:

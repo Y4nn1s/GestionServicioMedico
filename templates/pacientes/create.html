@@ -1,247 +1,488 @@
 {% extends 'base.html' %}
 
-{% block title %}Nuevo Paciente{% endblock %}
+{% block title %}Crear Paciente{% endblock %}
 
 {% block content %}
-<div class="card card-medical">
-    <div class="card-header-medical text-white text-center">
-        <h3 class="card-title mb-0">
-            <i class="bi bi-person-add me-2"></i>Registrar Nuevo Paciente
-        </h3>
-    </div>
-    <div class="card-body">
-        <form method="post" novalidate>
-            {% csrf_token %}
-            
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger alert-dismissible fade show mb-4">
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    <strong><i class="bi bi-exclamation-triangle me-1"></i>Errores:</strong>
-                    <ul class="mb-0">
-                        {% for error in form.non_field_errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-            
-            <!-- Sección de Identificación -->
-            <div class="section mb-4">
-                <h5 class="bg-light p-2 rounded-top border-bottom-0">
-                    <i class="bi bi-person-badge me-2"></i>Datos de Identificación
-                </h5>
-                <div class="p-3 border rounded-bottom">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.tipo_documento.id_for_label }}" class="form-label fw-bold">
-                                {{ form.tipo_documento.label }}
-                                {% if form.tipo_documento.field.required %}<span class="text-danger">*{% endif %}
-                            </label>
-                            {{ form.tipo_documento }}
-                            {% if form.tipo_documento.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.tipo_documento.errors %}
-                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.tipo_documento.help_text %}
-                                <div class="form-text"><small>{{ form.tipo_documento.help_text }}</small></div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.numero_documento.id_for_label }}" class="form-label fw-bold">
-                                {{ form.numero_documento.label }}
-                                {% if form.numero_documento.field.required %}<span class="text-danger">*{% endif %}
-                            </label>
-                            {{ form.numero_documento }}
-                            {% if form.numero_documento.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.numero_documento.errors %}
-                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.numero_documento.help_text %}
-                                <div class="form-text"><small>{{ form.numero_documento.help_text }}</small></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card card-medical">
+            <div class="card-header-medical text-white text-center">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-person-plus"></i> Crear Nuevo Paciente
+                </h3>
             </div>
-            
-            <!-- Sección de Datos Personales -->
-            <div class="section mb-4">
-                <h5 class="bg-light p-2 rounded-top border-bottom-0">
-                    <i class="bi bi-person-lines-fill me-2"></i>Datos Personales
-                </h5>
-                <div class="p-3 border rounded-bottom">
+            <div class="card-body">
+                <form method="POST" id="pacienteForm">
+                    {% csrf_token %}
+                    
+                    <!-- Datos básicos del paciente -->
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.nombre.id_for_label }}" class="form-label fw-bold">
-                                {{ form.nombre.label }}
-                                {% if form.nombre.field.required %}<span class="text-danger">*{% endif %}
-                            </label>
-                            {{ form.nombre }}
-                            {% if form.nombre.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.nombre.errors %}
-                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.nombre.help_text %}
-                                <div class="form-text"><small>{{ form.nombre.help_text }}</small></div>
-                            {% endif %}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                                    {{ form.nombre.label }}
+                                </label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                    <div class="text-danger">
+                                        {{ form.nombre.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Máximo 30 caracteres, solo letras y espacios</div>
+                            </div>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.apellido.id_for_label }}" class="form-label fw-bold">
-                                {{ form.apellido.label }}
-                                {% if form.apellido.field.required %}<span class="text-danger">*{% endif %}
-                            </label>
-                            {{ form.apellido }}
-                            {% if form.apellido.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.apellido.errors %}
-                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.apellido.help_text %}
-                                <div class="form-text"><small>{{ form.apellido.help_text }}</small></div>
-                            {% endif %}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.apellido.id_for_label }}" class="form-label">
+                                    {{ form.apellido.label }}
+                                </label>
+                                {{ form.apellido }}
+                                {% if form.apellido.errors %}
+                                    <div class="text-danger">
+                                        {{ form.apellido.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Máximo 20 caracteres, solo letras y espacios</div>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label fw-bold">
-                                {{ form.fecha_nacimiento.label }}
-                                {% if form.fecha_nacimiento.field.required %}<span class="text-danger">*{% endif %}
-                            </label>
-                            {{ form.fecha_nacimiento }}
-                            {% if form.fecha_nacimiento.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.fecha_nacimiento.errors %}
-                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.fecha_nacimiento.help_text %}
-                                <div class="form-text"><small>{{ form.fecha_nacimiento.help_text }}</small></div>
-                            {% endif %}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.numero_documento.id_for_label }}" class="form-label">
+                                    {{ form.numero_documento.label }}
+                                </label>
+                                {{ form.numero_documento }}
+                                {% if form.numero_documento.errors %}
+                                    <div class="text-danger">
+                                        {{ form.numero_documento.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">8 dígitos exactamente</div>
+                            </div>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.genero.id_for_label }}" class="form-label fw-bold">
-                                {{ form.genero.label }}
-                                {% if form.genero.field.required %}<span class="text-danger">*{% endif %}
-                            </label>
-                            {{ form.genero }}
-                            {% if form.genero.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.genero.errors %}
-                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.genero.help_text %}
-                                <div class="form-text"><small>{{ form.genero.help_text }}</small></div>
-                            {% endif %}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">
+                                    {{ form.fecha_nacimiento.label }}
+                                </label>
+                                {{ form.fecha_nacimiento }}
+                                {% if form.fecha_nacimiento.errors %}
+                                    <div class="text-danger">
+                                        {{ form.fecha_nacimiento.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Sección de Contacto -->
-            <div class="section mb-4">
-                <h5 class="bg-light p-2 rounded-top border-bottom-0">
-                    <i class="bi bi-envelope-at me-2"></i>Información de Contacto
-                </h5>
-                <div class="p-3 border rounded-bottom">
+                    
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">
-                                {{ form.email.label }}
-                                {% if form.email.field.required %}<span class="text-danger">*{% endif %}
-                            </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.email.errors %}
-                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.email.help_text %}
-                                <div class="form-text"><small>{{ form.email.help_text }}</small></div>
-                            {% endif %}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.genero.id_for_label }}" class="form-label">
+                                    {{ form.genero.label }}
+                                </label>
+                                {{ form.genero }}
+                                {% if form.genero.errors %}
+                                    <div class="text-danger">
+                                        {{ form.genero.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.confirmar_email.id_for_label }}" class="form-label fw-bold">
-                                {{ form.confirmar_email.label }}
-                                {% if form.confirmar_email.field.required %}<span class="text-danger">*{% endif %}
-                            </label>
-                            {{ form.confirmar_email }}
-                            {% if form.confirmar_email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.confirmar_email.errors %}
-                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.confirmar_email.help_text %}
-                                <div class="form-text"><small>{{ form.confirmar_email.help_text }}</small></div>
-                            {% endif %}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {{ form.email.label }}
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">
+                                        {{ form.email.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
+                    
+                    <hr>
+                    
+                    <!-- Sección de Dirección -->
+                    <h5><i class="bi bi-geo-alt"></i> Dirección</h5>
+                    <div id="direccion-formset">
+                        {{ direccion_formset.management_form }}
+                        {% for direccion_form in direccion_formset %}
+                            <div class="direccion-form mb-3 p-3 border rounded position-relative">
+                                {% for hidden in direccion_form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-2">
+                                            <label class="form-label">País</label>
+                                            <select class="form-control mb-2 pais-select">
+                                                <option value="">Seleccione un país</option>
+                                                {% for pais in paises %}
+                                                    <option value="{{ pais.id }}" {% if pais.nombre == 'Venezuela' %}selected{% endif %}>{{ pais.nombre }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <div class="mb-2">
+                                            <label class="form-label">Estado</label>
+                                            <select class="form-control mb-2 estado-select">
+                                                <option value="">Seleccione un estado</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <div class="mb-2">
+                                            <label for="{{ direccion_form.ciudad.id_for_label }}" class="form-label">
+                                                {{ direccion_form.ciudad.label }}
+                                            </label>
+                                            {{ direccion_form.ciudad }}
+                                            {% if direccion_form.ciudad.errors %}
+                                                <div class="text-danger">
+                                                    {{ direccion_form.ciudad.errors }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="mb-2">
+                                            <label for="{{ direccion_form.direccion.id_for_label }}" class="form-label">
+                                                {{ direccion_form.direccion.label }}
+                                            </label>
+                                            {{ direccion_form.direccion }}
+                                            {% if direccion_form.direccion.errors %}
+                                                <div class="text-danger">
+                                                    {{ direccion_form.direccion.errors }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <div class="mb-2">
+                                            <label for="{{ direccion_form.codigo_postal.id_for_label }}" class="form-label">
+                                                {{ direccion_form.codigo_postal.label }}
+                                            </label>
+                                            {{ direccion_form.codigo_postal }}
+                                            {% if direccion_form.codigo_postal.errors %}
+                                                <div class="text-danger">
+                                                    {{ direccion_form.codigo_postal.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Máximo 4 dígitos</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Sección de Teléfonos -->
+                    <h5><i class="bi bi-telephone"></i> Teléfonos</h5>
+                    <div id="telefono-formset">
+                        {{ telefono_formset.management_form }}
+                        {% for telefono_form in telefono_formset %}
+                            <div class="telefono-form mb-3 p-3 border rounded position-relative">
+                                {% for hidden in telefono_form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                                
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <div class="mb-2">
+                                            <label for="{{ telefono_form.tipo_telefono.id_for_label }}" class="form-label">
+                                                {{ telefono_form.tipo_telefono.label }}
+                                            </label>
+                                            {{ telefono_form.tipo_telefono }}
+                                            {% if telefono_form.tipo_telefono.errors %}
+                                                <div class="text-danger">
+                                                    {{ telefono_form.tipo_telefono.errors }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-5">
+                                        <div class="mb-2">
+                                            <label for="{{ telefono_form.numero.id_for_label }}" class="form-label">
+                                                {{ telefono_form.numero.label }}
+                                            </label>
+                                            {{ telefono_form.numero }}
+                                            {% if telefono_form.numero.errors %}
+                                                <div class="text-danger">
+                                                    {{ telefono_form.numero.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Exactamente 11 dígitos</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-2">
+                                        <div class="form-check mt-4">
+                                            {{ telefono_form.es_principal }}
+                                            <label for="{{ telefono_form.es_principal.id_for_label }}" class="form-check-label">
+                                                {{ telefono_form.es_principal.label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {% if telefono_form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ telefono_form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+                                
+                                {% if forloop.counter > 1 %}
+                                    <button type="button" class="btn btn-sm btn-danger btn-eliminar-telefono position-absolute top-0 end-0 m-2" title="Eliminar este teléfono">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="button" id="agregar-telefono" class="btn btn-outline-medical btn-sm mb-3">
+                        <i class="bi bi-plus-circle"></i> Agregar otro teléfono
+                    </button>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'pacientes:index' %}" class="btn btn-outline-medical">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </a>
+                        <button type="submit" class="btn btn-medical-primary">
+                            <i class="bi bi-save"></i> Crear Paciente
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                <a href="{% url 'pacientes:index' %}" class="btn btn-outline-medical btn-lg">
-                    <i class="bi bi-x-circle me-1"></i> Cancelar
-                </a>
-                <button type="submit" class="btn btn-medical-primary btn-lg px-4">
-                    <i class="bi bi-check-circle me-1"></i> Guardar Paciente
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Agregar clases de validación de Bootstrap a los campos
-    document.addEventListener('DOMContentLoaded', function() {
-        const forms = document.querySelectorAll('form');
+// Función para cargar opciones en selects dinámicamente
+function cargarOpciones(select, url, datos) {
+    $.ajax({
+        url: url,
+        data: datos,
+        success: function(data) {
+            select.html(data);
+        }
+    });
+}
+
+$(document).ready(function() {
+    // Manejar cambio de país para cargar estados
+    $(document).on('change', '.pais-select', function() {
+        var paisId = $(this).val();
+        var estadoSelect = $(this).closest('.direccion-form').find('.estado-select');
+        var ciudadSelect = $(this).closest('.direccion-form').find('.ciudad-select');
         
-        forms.forEach(form => {
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                
-                form.classList.add('was-validated');
+        if (paisId) {
+            $.get("{% url 'pacientes:cargar_estados' %}", {'pais_id': paisId}, function(data) {
+                estadoSelect.html(data);
+                ciudadSelect.html('<option value="">Seleccione una ciudad</option>');
             });
-            
-            // Agregar clases de validación a los campos con errores
-            const fields = form.querySelectorAll('input, select, textarea');
-            fields.forEach(field => {
-                field.addEventListener('input', () => {
-                    if (field.checkValidity()) {
-                        field.classList.remove('is-invalid');
-                        field.classList.add('is-valid');
-                    } else {
-                        field.classList.remove('is-valid');
-                        field.classList.add('is-invalid');
+        } else {
+            estadoSelect.html('<option value="">Seleccione un estado</option>');
+            ciudadSelect.html('<option value="">Seleccione una ciudad</option>');
+        }
+    });
+    
+    // Manejar cambio de estado para cargar ciudades
+    $(document).on('change', '.estado-select', function() {
+        var estadoId = $(this).val();
+        var ciudadSelect = $(this).closest('.direccion-form').find('.ciudad-select');
+        
+        if (estadoId) {
+            $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': estadoId}, function(data) {
+                ciudadSelect.html(data);
+            });
+        } else {
+            ciudadSelect.html('<option value="">Seleccione una ciudad</option>');
+        }
+    });
+    
+    // Agregar nueva dirección
+    $('#agregar-direccion').click(function() {
+        var formset = $('#direccion-formset');
+        var totalForms = $('#id_direccion_set-TOTAL_FORMS');
+        var formCount = parseInt(totalForms.val());
+        
+        var emptyForm = $('#direccion-formset .empty-form').first().clone();
+        emptyForm.removeClass('empty-form d-none');
+        var formHtml = emptyForm.html().replace(/__prefix__/g, formCount);
+        
+        formset.append(emptyForm);
+        totalForms.val(formCount + 1);
+    });
+    
+    // Agregar nuevo teléfono
+    $(document).on('click', '#agregar-telefono', function() {
+        var formset = $('#telefono-formset');
+        var totalFormsInput = formset.find('input[name$="-TOTAL_FORMS"]').first();
+        if (!totalFormsInput.length) {
+            return;
+        }
+        var formIdx = parseInt(totalFormsInput.val()) || 0;
+        
+        // Clonar el último formulario existente
+        var lastForm = formset.children('.telefono-form').last();
+        if (lastForm.length === 0) {
+            return;
+        }
+        
+        var newForm = lastForm.clone(true);
+        newForm.find('input,select,textarea').val('').prop('checked', false);
+        
+        // Actualizar nombres e IDs para el nuevo índice
+        newForm.find('[name], [id]').each(function() {
+            var $el = $(this);
+            ['name', 'id'].forEach(function(attr) {
+                var val = $el.attr(attr);
+                if (val) {
+                    val = val.replace(/-\d+-/g, '-' + formIdx + '-');
+                    $el.attr(attr, val);
+                }
+            });
+        });
+        
+        newForm.find('label[for]').each(function() {
+            var forVal = $(this).attr('for').replace(/-\d+-/g, '-' + formIdx + '-');
+            $(this).attr('for', forVal);
+        });
+        
+        // Añadir botón de eliminar solo a forms nuevos (índice >= 1)
+        if (formIdx >= 1) {
+            newForm.append('<button type="button" class="btn btn-sm btn-danger btn-eliminar-telefono position-absolute top-0 end-0 m-2" title="Eliminar este teléfono"><i class="bi bi-x"></i></button>');
+        }
+        
+        formset.append(newForm);
+        totalFormsInput.val(formIdx + 1);
+    });
+
+    // Eliminar teléfono
+    $('#telefono-formset').on('click', '.btn-eliminar-telefono', function(e) {
+        e.preventDefault();
+        var formToRemove = $(this).closest('.telefono-form');
+        var formset = $('#telefono-formset');
+        var totalFormsInput = formset.find('input[name$="-TOTAL_FORMS"]').first();
+        var initialFormsInput = formset.find('input[name$="-INITIAL_FORMS"]').first();
+        
+        if (!totalFormsInput.length || !initialFormsInput.length) {
+            return;
+        }
+        
+        var initialForms = parseInt(initialFormsInput.val()) || 0;
+        var currentTotal = parseInt(totalFormsInput.val()) || 0;
+        var idx = formset.children('.telefono-form').index(formToRemove);
+        
+        if (idx < initialForms) {
+            return; // No eliminar forms iniciales
+        }
+        
+        formToRemove.remove();
+        
+        // Reindexar forms restantes
+        formset.children('.telefono-form').each(function(newIdx) {
+            $(this).find('[name], [id]').each(function() {
+                var $el = $(this);
+                ['name', 'id'].forEach(function(attr) {
+                    var val = $el.attr(attr);
+                    if (val) {
+                        val = val.replace(/-\d+-/g, '-' + newIdx + '-');
+                        $el.attr(attr, val);
                     }
                 });
             });
+            $(this).find('label[for]').each(function() {
+                var forVal = $(this).attr('for').replace(/-\d+-/g, '-' + newIdx + '-');
+                $(this).attr('for', forVal);
+            });
+        });
+        
+        totalFormsInput.val(currentTotal - 1);
+    });
+    
+    // Configurar valores por defecto para Venezuela
+    setTimeout(function() {
+        $('.pais-select').each(function() {
+            var $this = $(this);
+            $this.find('option').each(function() {
+                if ($(this).text() === 'Venezuela') {
+                    $this.val($(this).val()).trigger('change');
+                }
+            });
+        });
+        
+        // Después de que se haya cargado Venezuela, cargar automáticamente las ciudades de Distrito Capital
+        setTimeout(function() {
+            $('.estado-select').each(function() {
+                var $this = $(this);
+                // Si ya hay un estado seleccionado (Distrito Capital), cargar sus ciudades
+                if ($this.val()) {
+                    var estadoId = $this.val();
+                    var ciudadSelect = $this.closest('.direccion-form').find('.ciudad-select');
+                    if (ciudadSelect.length && !ciudadSelect.find('option[value!=""]').length) {
+                        $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': estadoId}, function(data) {
+                            ciudadSelect.html('<option value="">Seleccione una ciudad</option>' + data);
+                        });
+                    }
+                }
+            });
+        }, 1000);
+    }, 500);
+    
+    // Agregar clases de validación de Bootstrap a los campos
+    const forms = document.querySelectorAll('form');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        });
+        
+        // Agregar clases de validación a los campos con errores
+        const fields = form.querySelectorAll('input, select, textarea');
+        fields.forEach(field => {
+            field.addEventListener('input', () => {
+                if (field.checkValidity()) {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                } else {
+                    field.classList.remove('is-valid');
+                    field.classList.add('is-invalid');
+                }
+            });
         });
     });
+});
 </script>
 {% endblock %}
