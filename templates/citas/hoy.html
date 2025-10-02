@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Citas para Hoy ({{ hoy|date:"d/m/Y" }})</h1>
+    <h1 class="dashboard-title">Citas para Hoy ({{ hoy|date:"d/m/Y" }})</h1>
     <a href="{% url 'citas:index' %}" class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Ver todas las citas
     </a>
