@@ -14,7 +14,7 @@ import os
 import sys
 from pathlib import Path
 
-# Agregar estas líneas para manejar problemas de codificación en Windows
+# Agregar estas lÃ­neas para manejar problemas de codificaciÃ³n en Windows
 if sys.platform == 'win32':
     os.environ.setdefault('PYTHONIOENCODING', 'utf-8')
     os.environ.setdefault('PGCLIENTENCODING', 'UTF8')
@@ -89,17 +89,23 @@ WSGI_APPLICATION = 'sistema_medico.wsgi.application'
 
 from decouple import config
 
-SECRET_KEY = config('SECRET_KEY')
+# Usar SECRET_KEY del entorno o del .env, con valor predeterminado si no existe
+SECRET_KEY = os.getenv('SECRET_KEY', config('SECRET_KEY', default='django-insecure-#b)s=!!zne4f_we(@r3wkd0^gs^x%0by$skn^=fc8c@1k(%pq$'))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'sistema_unearte'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'NAME': os.getenv('DB_NAME', config('DB_NAME', default='sistema_unearte')),
+        'USER': os.getenv('DB_USER', config('DB_USER', default='postgres')),
+        'PASSWORD': os.getenv('DB_PASSWORD', config('DB_PASSWORD', default='postgres')),
+        'HOST': os.getenv('DB_HOST', config('DB_HOST', default='localhost')),
+        'PORT': os.getenv('DB_PORT', config('DB_PORT', default='5432')),
         'OPTIONS': {
             'client_encoding': 'UTF8',
+            'options': '-c default_transaction_isolation=serializable',
+        },
+        'TEST': {
+            'NAME': 'test_sistema_unearte',
         },
     }
 }
@@ -144,7 +150,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# Para desarrollo, también necesitamos definir MEDIA_URL y MEDIA_ROOT
+# Para desarrollo, tambiÃ©n necesitamos definir MEDIA_URL y MEDIA_ROOT
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
