@@ -143,7 +143,9 @@ class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         response = super().form_valid(form)
         # Asignar rol desde el formulario o establecer por defecto
         rol = self.request.POST.get('rol', 'recepcionista')
-        perfil = PerfilUsuario.objects.get(usuario=self.object)
+        
+        # Actualizar el rol en el perfil existente
+        perfil = self.object.perfilusuario
         perfil.rol = rol
         perfil.save()
         
