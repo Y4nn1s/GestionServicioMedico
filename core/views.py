@@ -126,8 +126,26 @@ class CustomLoginView(LoginView):
         return reverse_lazy('core:dashboard')
 
 
-class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy('core:dashboard')
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.cache import never_cache
+from django.contrib.auth import logout
+from django.views import View
+from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
+from django.shortcuts import render
+
+
+class CustomLogoutView(View):
+    template_name = 'registration/logged_out.html'
+    
+    def get(self, request, *args, **kwargs):
+        # Muestra la página de confirmación previa al logout
+        return render(request, self.template_name)
+    
+    def post(self, request, *args, **kwargs):
+        # Procesa el logout y redirige
+        logout(request)
+        return HttpResponseRedirect(reverse_lazy('core:login'))
 
 
 class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
