@@ -8,31 +8,33 @@
         <div class="card card-medical">
             <div class="card-header-medical text-white text-center">
                 <h3 class="card-title mb-0">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                    <i class="bi bi-lock me-2"></i>Acceso al Sistema
                 </h3>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
                     
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Usuario</label>
+                    <div class="mb-4">
+                        <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">Nombre de Usuario</label>
                         {{ form.username }}
                         {% if form.username.errors %}
                             <div class="text-danger mt-1">
                                 {{ form.username.errors }}
                             </div>
                         {% endif %}
+                        <div class="form-text mt-1">Introduce tu nombre de usuario</div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña</label>
+                    <div class="mb-4">
+                        <label for="{{ form.password.id_for_label }}" class="form-label fw-bold">Contraseña</label>
                         {{ form.password }}
                         {% if form.password.errors %}
                             <div class="text-danger mt-1">
                                 {{ form.password.errors }}
                             </div>
                         {% endif %}
+                        <div class="form-text mt-1">Introduce tu contraseña</div>
                     </div>
                     
                     {% if form.non_field_errors %}
@@ -43,12 +45,27 @@
                         </div>
                     {% endif %}
                     
-                    <div class="d-grid">
+                    <div class="d-grid mb-3">
                         <button type="submit" class="btn btn-medical-primary btn-lg">
                             <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
                         </button>
                     </div>
                 </form>
+                
+                <div class="text-center">
+                    <p class="mb-2">¿No tienes una cuenta?</p>
+                    <a href="{% url 'core:signup' %}" class="btn btn-outline-medical">
+                        <i class="bi bi-person-plus me-1"></i> Registrarse
+                    </a>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-lock me-1"></i> Sistema Médico UNEARTE
+                    </small>
+                </div>
             </div>
         </div>
     </div>

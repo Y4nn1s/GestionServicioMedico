@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
+from django import forms
 from pacientes.models import Paciente
 from citas.models import Cita
 from historiales.models import HistorialMedico
@@ -130,9 +131,14 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import logout
 from django.views import View
+from django.views.generic import CreateView
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.shortcuts import render
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User, Group
+from .models import PerfilUsuario
+from django.contrib import messages
 
 
 class CustomLogoutView(View):
@@ -146,6 +152,46 @@ class CustomLogoutView(View):
         # Procesa el logout y redirige
         logout(request)
         return HttpResponseRedirect(reverse_lazy('core:login'))
+
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de usuario'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellido'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo electrónico'}),
+        }
+
+
+class SignUpView(CreateView):
+    form_class = CustomUserCreationForm
+    success_url = reverse_lazy('core:login')
+    template_name = 'registration/signup.html'
+    
+    def form_valid(self, form):
+        # Guardar el usuario
+        user = form.save()
+        
+        # Actualizar el rol en el perfil existente (creado por la señal)
+        perfil = user.perfilusuario
+        perfil.rol = 'recepcionista'
+        perfil.save()
+        
+        # Asignar al grupo de Recepcionistas por defecto
+        grupo, created = Group.objects.get_or_create(name='Recepcionistas')
+        user.groups.add(grupo)
+        
+        messages.success(self.request, 'Usuario registrado exitosamente. Contacta con un administrador para que te asigne el rol adecuado.')
+        
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Registro de Usuario'
+        return context
 
 
 class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
