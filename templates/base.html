@@ -28,6 +28,7 @@
             </button>
             
             <!-- Barra de búsqueda global centrada -->
+            {% if user.is_authenticated %}
             <div class="d-flex justify-content-center flex-grow-1">
                 <form class="search-form-global" action="{% url 'core:search_all' %}" method="GET" role="search">
                     <div class="search-input-container">
@@ -38,21 +39,69 @@
                     </div>
                 </form>
             </div>
+            {% endif %}
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-medical" href="{% url 'pacientes:index' %}">Pacientes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-medical" href="{% url 'citas:index' %}">Citas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-medical" href="{% url 'historiales:index' %}">Historiales</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-medical" href="{% url 'inventario:index' %}">Inventarios</a>
-                    </li>
+                    {% if user.is_authenticated %}
+                        {% if user.perfilusuario.rol == 'admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'pacientes:index' %}">Pacientes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'citas:index' %}">Citas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'historiales:index' %}">Historiales</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'inventario:index' %}">Inventarios</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link nav-link-medical dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-gear me-1"></i>Administración
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{% url 'core:lista_usuarios' %}"><i class="bi bi-people me-2"></i>Gestión de Usuarios</a></li>
+                                </ul>
+                            </li>
+                        {% elif user.perfilusuario.rol == 'medico' %}
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'pacientes:index' %}">Pacientes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'citas:index' %}">Citas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'historiales:index' %}">Historiales</a>
+                            </li>
+                        {% elif user.perfilusuario.rol == 'recepcionista' %}
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'pacientes:index' %}">Pacientes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-medical" href="{% url 'citas:index' %}">Citas</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link nav-link-medical dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+                                <span class="badge bg-light text-dark ms-1">{{ user.perfilusuario.get_rol_display }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Perfil</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'core:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-medical" href="{% url 'core:login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-medical" href="{% url 'core:signup' %}"><i class="bi bi-person-plus me-1"></i>Registrarse</a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -83,6 +132,24 @@
             {% endif %}
 
             {% block content %}
+                {% if not user.is_authenticated %}
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="card card-medical text-center">
+                                <div class="card-body py-5">
+                                    <i class="bi bi-person-circle" style="font-size: 5rem; color: var(--medical-primary);"></i>
+                                    <h2 class="mt-3">Sistema Médico</h2>
+                                    <p class="lead">Bienvenido al sistema de gestión médica</p>
+                                    <div class="mt-4">
+                                        <a href="{% url 'core:login' %}" class="btn btn-medical-primary btn-lg me-2">
+                                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             {% endblock %}
         </div>
     </div>
