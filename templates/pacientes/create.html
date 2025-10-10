@@ -188,6 +188,12 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                {% if direccion_form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ direccion_form.non_field_errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         {% endfor %}
                     </div>
@@ -332,12 +338,16 @@ $(document).ready(function() {
         var totalForms = $('#id_direccion_set-TOTAL_FORMS');
         var formCount = parseInt(totalForms.val());
         
+        // Crear nuevo formulario a partir del formulario vacío
         var emptyForm = $('#direccion-formset .empty-form').first().clone();
         emptyForm.removeClass('empty-form d-none');
         var formHtml = emptyForm.html().replace(/__prefix__/g, formCount);
         emptyForm.html(formHtml);
         
+        // Añadir el nuevo formulario
         formset.append(emptyForm);
+        
+        // Incrementar el contador de formularios
         totalForms.val(formCount + 1);
     });
     
@@ -384,7 +394,7 @@ $(document).ready(function() {
         formset.append(newForm);
         totalFormsInput.val(formIdx + 1);
     });
-
+    
     // Eliminar teléfono
     $('#telefono-formset').on('click', '.btn-eliminar-telefono', function(e) {
         e.preventDefault();
@@ -428,33 +438,17 @@ $(document).ready(function() {
         totalFormsInput.val(currentTotal - 1);
     });
     
-    // Configurar valores por defecto para Venezuela
+    // Configurar valores por defecto para UNEARTE (Venezuela)
     setTimeout(function() {
         $('.pais-select').each(function() {
             var $this = $(this);
+            // Seleccionar Venezuela automáticamente
             $this.find('option').each(function() {
                 if ($(this).text() === 'Venezuela') {
                     $this.val($(this).val()).trigger('change');
                 }
             });
         });
-        
-        // Después de que se haya cargado Venezuela, cargar automáticamente las ciudades de Distrito Capital
-        setTimeout(function() {
-            $('.estado-select').each(function() {
-                var $this = $(this);
-                // Si ya hay un estado seleccionado (Distrito Capital), cargar sus ciudades
-                if ($this.val()) {
-                    var estadoId = $this.val();
-                    var ciudadSelect = $this.closest('.direccion-form').find('.ciudad-select');
-                    if (ciudadSelect.length && !ciudadSelect.find('option[value!=""]').length) {
-                        $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': estadoId}, function(data) {
-                            ciudadSelect.html('<option value="">Seleccione una ciudad</option>' + data);
-                        });
-                    }
-                }
-            });
-        }, 1000);
     }, 500);
 });
 </script>

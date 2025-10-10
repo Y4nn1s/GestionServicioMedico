@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 class TipoDocumento(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
@@ -121,6 +122,20 @@ class Direccion(models.Model):
     
     def __str__(self):
         return f"{self.direccion}, {self.ciudad}"
+    
+    def clean(self):
+        # Validar que si hay dirección, debe haber ciudad
+        if self.direccion and not self.ciudad_id:
+            raise ValidationError("Debe seleccionar una ciudad cuando ingresa una dirección.")
+            
+        # Validar que si hay ciudad, debe haber dirección
+        if self.ciudad_id and not self.direccion:
+            raise ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
+
+    def save(self, *args, **kwargs):
+        # Llamar a la validación antes de guardar
+        self.clean()
+        super().save(*args, **kwargs)
     
     class Meta:
         db_table = 'direcciones'

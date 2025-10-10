@@ -288,23 +288,12 @@
 {% block scripts %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-// Función para cargar opciones en selects dinámicamente
-function cargarOpciones(select, url, datos) {
-    $.ajax({
-        url: url,
-        data: datos,
-        success: function(data) {
-            select.html(data);
-        }
-    });
-}
-
 $(document).ready(function() {
     // Manejar cambio de país para cargar estados
     $(document).on('change', '.pais-select', function() {
         var paisId = $(this).val();
         var estadoSelect = $(this).closest('.direccion-form').find('.estado-select');
-        var ciudadSelect = $(this).closest('.direccion-form').find('.ciudad-select');
+        var ciudadSelect = $(this).closest('.direccion-form').find('select[id*="ciudad"]');  // Campo ciudad de Django
         
         if (paisId) {
             $.get("{% url 'pacientes:cargar_estados' %}", {'pais_id': paisId}, function(data) {
@@ -320,7 +309,7 @@ $(document).ready(function() {
     // Manejar cambio de estado para cargar ciudades
     $(document).on('change', '.estado-select', function() {
         var estadoId = $(this).val();
-        var ciudadSelect = $(this).closest('.direccion-form').find('.ciudad-select');
+        var ciudadSelect = $(this).closest('.direccion-form').find('select[id*="ciudad"]');  // Campo ciudad de Django
         
         if (estadoId) {
             $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': estadoId}, function(data) {
@@ -418,34 +407,49 @@ $(document).ready(function() {
         totalFormsInput.val(currentTotal - 1);
     });
     
-    // Configurar valores por defecto para Venezuela
+    // Al cargar la página, disparar el evento change en los selects de país
+    // para que se actualicen los selects de estado y ciudad según la jerarquía
+    // pero también asegurar que los valores guardados se mantengan
     setTimeout(function() {
-        $('.pais-select').each(function() {
-            var $this = $(this);
-            $this.find('option').each(function() {
-                if ($(this).text() === 'Venezuela') {
-                    $this.val($(this).val()).trigger('change');
-                }
-            });
-        });
-        
-        // Después de que se haya cargado Venezuela, cargar automáticamente las ciudades de Distrito Capital
-        setTimeout(function() {
-            $('.estado-select').each(function() {
-                var $this = $(this);
-                // Si ya hay un estado seleccionado (Distrito Capital), cargar sus ciudades
-                if ($this.val()) {
-                    var estadoId = $this.val();
-                    var ciudadSelect = $this.closest('.direccion-form').find('.ciudad-select');
-                    if (ciudadSelect.length && !ciudadSelect.find('option[value!=""]').length) {
-                        $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': estadoId}, function(data) {
-                            ciudadSelect.html('<option value="">Seleccione una ciudad</option>' + data);
+        $('.direccion-form').each(function() {
+            var $form = $(this);
+            var paisSelect = $form.find('.pais-select');
+            var estadoSelect = $form.find('.estado-select');
+            var ciudadSelect = $form.find('select[id*="ciudad"]');  // Campo ciudad de Django
+            var selectedPais = paisSelect.val();
+            var selectedEstado = estadoSelect.val();
+            var selectedCiudad = ciudadSelect.val();
+            
+            if (selectedPais) {
+                // Cargar estados del país seleccionado
+                $.get("{% url 'pacientes:cargar_estados' %}", {'pais_id': selectedPais}, function(data) {
+                    estadoSelect.html(data);
+                    
+                    if (selectedEstado) {
+                        // Restaurar estado seleccionado
+                        estadoSelect.val(selectedEstado);
+                        
+                        // Cargar ciudades del estado seleccionado
+                        $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': selectedEstado}, function(ciudadData) {
+                            ciudadSelect.html(ciudadData);
+                            
+                            if (selectedCiudad) {
+                                // Restaurar ciudad seleccionada
+                                ciudadSelect.val(selectedCiudad);
+                            }
                         });
                     }
-                }
-            });
-        }, 1000);
-    }, 500);
+                });
+            }
+        });
+        
+        // Asegurar que se muestre la fecha de nacimiento correcta
+        // Verificar si hay una fecha de nacimiento guardada para el paciente
+        {% if form.instance.fecha_nacimiento %}
+            var fechaNacimiento = "{{ form.instance.fecha_nacimiento|date:'Y-m-d' }}";
+            $('#id_fecha_nacimiento').val(fechaNacimiento);
+        {% endif %}
+    }, 200);  // Pequeño delay para asegurar que los elementos están completamente cargados
 });
 </script>
 {% endblock %}

@@ -45,9 +45,10 @@ class CitaForm(forms.ModelForm):
         self.fields['motivo'].queryset = MotivoCita.objects.all()
         self.fields['estado'].queryset = EstadoCita.objects.all()
         
-        # Establecer valores mínimos para fecha y hora
-        today = timezone.now().date()
-        self.fields['fecha'].widget.attrs['min'] = today
+        # Establecer valores mínimos para fecha y hora SOLO para nuevas citas
+        if not self.instance.pk:
+            today = timezone.now().date()
+            self.fields['fecha'].widget.attrs['min'] = today
         self.fields['hora_inicio'].widget.attrs['min'] = '00:00'
         self.fields['hora_fin'].widget.attrs['min'] = '00:00'
 
@@ -78,14 +79,72 @@ class CitaForm(forms.ModelForm):
             if citas_solapadas.exists():
                 raise ValidationError('El paciente ya tiene una cita programada en este horario.')
 
-        # Validar que la fecha no sea en el pasado
-        if fecha and fecha < timezone.now().date():
+        # Validar que la fecha no sea en el pasado SOLO para nuevas citas
+        if not self.instance.pk and fecha and fecha < timezone.now().date():
             raise ValidationError('No se pueden programar citas en fechas pasadas.')
 
         return cleaned_data
 
     def clean_fecha(self):
         fecha = self.cleaned_data.get('fecha')
-        if fecha and fecha < timezone.now().date():
+        # Validar que la fecha no sea en el pasado SOLO para nuevas citas
+        if not self.instance.pk and fecha and fecha < timezone.now().date():
             raise ValidationError('No se pueden programar citas en fechas pasadas.')
         return fecha
+
+class EstadoCitaForm(forms.ModelForm):
+    class Meta:
+        model = EstadoCita
+        fields = ['nombre', 'descripcion', 'color']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'color': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '#RRGGBB'}),
+        }
+        labels = {
+            'nombre': 'Nombre',
+            'descripcion': 'Descripción',
+            'color': 'Color (Código HEX)',
+        }
+
+    def clean_color(self):
+        color = self.cleaned_data.get('color')
+        if color and not color.startswith('#'):
+            raise ValidationError('El código de color debe comenzar con #.')
+        if color and len(color) != 7:
+            raise ValidationError('El código de color debe tener 7 caracteres.')
+        return color
+
+class TipoCitaForm(forms.ModelForm):
+    class Meta:
+        model = TipoCita
+        fields = ['nombre', 'descripcion', 'duracion_estimada']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'duracion_estimada': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+        }
+        labels = {
+            'nombre': 'Nombre',
+            'descripcion': 'Descripción',
+            'duracion_estimada': 'Duración Estimada (minutos)',
+        }
+
+    def clean_duracion_estimada(self):
+        duracion = self.cleaned_data.get('duracion_estimada')
+        if duracion and duracion <= 0:
+            raise ValidationError('La duración estimada debe ser mayor que cero.')
+        return duracion
+
+class MotivoCitaForm(forms.ModelForm):
+    class Meta:
+        model = MotivoCita
+        fields = ['nombre', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'nombre': 'Nombre',
+            'descripcion': 'Descripción',
+        }

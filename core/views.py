@@ -18,7 +18,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             fecha=timezone.now().date()
         ).count()
         context['citas_pendientes'] = Cita.objects.filter(
-            estado__nombre='Pendiente'
+            estado__nombre='Programada'
         ).count()
         context['total_historiales'] = HistorialMedico.objects.count()
         

@@ -12,4 +12,9 @@ urlpatterns = [
     path('search/', views.search, name='search'),
     path('hoy/', views.citas_hoy, name='hoy'),
     path('<int:cita_id>/estado/<int:estado_id>/', views.cambiar_estado, name='cambiar_estado'),
+    
+    # URLs AJAX para crear tipos, motivos y estados
+    path('ajax/crear-tipo-cita/', views.crear_tipo_cita_ajax, name='crear_tipo_cita_ajax'),
+    path('ajax/crear-motivo-cita/', views.crear_motivo_cita_ajax, name='crear_motivo_cita_ajax'),
+    path('ajax/crear-estado-cita/', views.crear_estado_cita_ajax, name='crear_estado_cita_ajax'),
 ]
