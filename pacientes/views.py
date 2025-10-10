@@ -22,14 +22,42 @@ def create(request):
         direccion_formset = DireccionFormSet(request.POST)
         telefono_formset = TelefonoFormSet(request.POST)
         
+        # Imprimir errores para debugging
+        if not paciente_form.is_valid():
+            print("Errores en paciente_form:", paciente_form.errors)
+        if not direccion_formset.is_valid():
+            print("Errores en direccion_formset:", direccion_formset.errors)
+        if not telefono_formset.is_valid():
+            print("Errores en telefono_formset:", telefono_formset.errors)
+        
+        # Cargar los querysets para los formularios de dirección
+        for form in direccion_formset:
+            if form.is_bound:
+                # Si el formulario está bound, cargar los querysets según los datos enviados
+                ciudad_id = request.POST.get(form.prefix + '-ciudad')
+                if ciudad_id:
+                    try:
+                        ciudad = Ciudad.objects.get(id=ciudad_id)
+                        estado = ciudad.estado
+                        pais = estado.pais
+                        form.fields['ciudad'].queryset = Ciudad.objects.filter(estado=estado)
+                    except Ciudad.DoesNotExist:
+                        pass  # El formulario mostrará el error de validación
+        
         if paciente_form.is_valid() and direccion_formset.is_valid() and telefono_formset.is_valid():
-            paciente = paciente_form.save()
-            direccion_formset.instance = paciente
-            direccion_formset.save()
-            telefono_formset.instance = paciente
-            telefono_formset.save()
-            messages.success(request, 'Paciente creado correctamente.')
-            return redirect('pacientes:index')
+            try:
+                paciente = paciente_form.save()
+                direccion_formset.instance = paciente
+                direccion_formset.save()
+                telefono_formset.instance = paciente
+                telefono_formset.save()
+                messages.success(request, 'Paciente creado correctamente.')
+                return redirect('pacientes:index')
+            except Exception as e:
+                messages.error(request, f'Error al crear el paciente: {str(e)}')
+                print("Error al crear el paciente:", str(e))
+        else:
+            messages.error(request, 'Por favor, corrija los errores en el formulario.')
     else:
         paciente_form = PacienteForm()
         direccion_formset = DireccionFormSet()
@@ -78,6 +106,31 @@ def edit(request, paciente_id):
     
     # Obtener datos para los selects dinámicos
     paises = Pais.objects.all().order_by('nombre')
+    
+    # Cargar datos iniciales para los formularios de dirección
+    for form in direccion_formset:
+        if form.instance and form.instance.pk:
+            # Si el formulario tiene una instancia existente, cargar los datos relacionados
+            if hasattr(form.instance, 'ciudad') and form.instance.ciudad:
+                ciudad = form.instance.ciudad
+                estado = ciudad.estado
+                pais = estado.pais
+                # Cargar ciudades disponibles para el estado
+                form.fields['ciudad'].queryset = Ciudad.objects.filter(estado=estado)
+                # Establecer la ciudad existente como inicial
+                form.fields['ciudad'].initial = ciudad
+            else:
+                # Si no hay ciudad asociada, cargar todas las ciudades
+                form.fields['ciudad'].queryset = Ciudad.objects.all()
+        else:
+            # Para formularios nuevos, cargar todas las ciudades
+            form.fields['ciudad'].queryset = Ciudad.objects.all()
+    
+    # Cargar datos iniciales para los formularios de teléfono
+    for form in telefono_formset:
+        if form.instance and form.instance.pk:
+            # Los datos ya deberían cargarse automáticamente por el formset
+            pass
     
     return render(request, 'pacientes/edit.html', {
         'form': paciente_form,

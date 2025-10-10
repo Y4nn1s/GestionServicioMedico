@@ -131,3 +131,26 @@
     </div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Asegurar que se muestren los valores correctos de fecha y hora
+    // Verificar si hay valores guardados para fecha y horas
+    {% if form.instance.fecha %}
+        var fechaCita = "{{ form.instance.fecha|date:'Y-m-d' }}";
+        $('#id_fecha').val(fechaCita);
+    {% endif %}
+    
+    {% if form.instance.hora_inicio %}
+        var horaInicio = "{{ form.instance.hora_inicio|time:'H:i' }}";
+        $('#id_hora_inicio').val(horaInicio);
+    {% endif %}
+    
+    {% if form.instance.hora_fin %}
+        var horaFin = "{{ form.instance.hora_fin|time:'H:i' }}";
+        $('#id_hora_fin').val(horaFin);
+    {% endif %}
+});
+</script>
+{% endblock %}

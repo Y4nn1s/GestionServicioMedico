@@ -41,7 +41,6 @@ class PacienteForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'date'
             }),
-
             'genero': forms.Select(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ejemplo@correo.com'}),
         }
@@ -60,6 +59,10 @@ class PacienteForm(forms.ModelForm):
         # Establecer valores predeterminados
         if not self.instance.pk:
             self.fields['genero'].initial = Genero.MASCULINO
+        
+        # Formatear correctamente la fecha de nacimiento si existe
+        if self.instance and self.instance.fecha_nacimiento:
+            self.fields['fecha_nacimiento'].widget.attrs['value'] = self.instance.fecha_nacimiento.strftime('%Y-%m-%d')
 
     def clean_numero_documento(self):
         numero_documento = self.cleaned_data.get('numero_documento')
@@ -89,18 +92,6 @@ class PacienteForm(forms.ModelForm):
         return apellido
 
 class DireccionForm(forms.ModelForm):
-    # Campo personalizado para selección jerárquica de ubicación
-    pais = forms.ModelChoiceField(
-        queryset=Pais.objects.all(),
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control mb-2 pais-select'})
-    )
-    estado = forms.ModelChoiceField(
-        queryset=Estado.objects.none(),
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control mb-2 estado-select'})
-    )
-    
     class Meta:
         model = Direccion
         fields = ['ciudad', 'direccion', 'codigo_postal']
@@ -123,44 +114,38 @@ class DireccionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Inicializar campos jerárquicos
-        if 'initial' in kwargs:
-            ciudad = kwargs['initial'].get('ciudad')
-            if ciudad:
-                estado = ciudad.estado
-                self.fields['estado'].queryset = Estado.objects.filter(pais=estado.pais)
-                self.fields['ciudad'].queryset = Ciudad.objects.filter(estado=estado)
-        elif self.instance and self.instance.pk and self.instance.ciudad:
-            estado = self.instance.ciudad.estado
-            pais = estado.pais
-            self.fields['estado'].queryset = Estado.objects.filter(pais=pais)
-            self.fields['ciudad'].queryset = Ciudad.objects.filter(estado=estado)
-            self.fields['pais'].initial = pais
-        else:
-            # Inicializar querysets vacíos para nuevos formularios
-            self.fields['estado'].queryset = Estado.objects.none()
-            self.fields['ciudad'].queryset = Ciudad.objects.none()
+        # Inicializar el queryset de ciudades con todas las ciudades disponibles
+        self.fields['ciudad'].queryset = Ciudad.objects.select_related('estado__pais').all()
 
-    def clean_codigo_postal(self):
-        codigo_postal = self.cleaned_data.get('codigo_postal')
-        if codigo_postal:
-            if not codigo_postal.isdigit():
-                raise ValidationError('El código postal solo debe contener dígitos.')
-            if len(codigo_postal) > 4:
-                raise ValidationError('El código postal no debe exceder los 4 dígitos.')
-        return codigo_postal
+    def clean_ciudad(self):
+        ciudad = self.cleaned_data.get('ciudad')
+        direccion = self.cleaned_data.get('direccion')
+        
+        # Solo validar si se ha ingresado una dirección
+        if direccion and not ciudad:
+            raise ValidationError("Debe seleccionar una ciudad cuando ingresa una dirección.")
+            
+        return ciudad
+
+    def clean_direccion(self):
+        direccion = self.cleaned_data.get('direccion')
+        ciudad = self.cleaned_data.get('ciudad')
+        
+        # Solo validar si se ha seleccionado una ciudad
+        if ciudad and not direccion:
+            raise ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
+            
+        return direccion
 
     def clean(self):
         cleaned_data = super().clean()
         ciudad = cleaned_data.get('ciudad')
         direccion = cleaned_data.get('direccion')
         
-        # Validar que si hay dirección, debe haber ciudad
+        # Validación adicional para asegurar consistencia
         if direccion and not ciudad:
             raise ValidationError("Debe seleccionar una ciudad cuando ingresa una dirección.")
-            
-        # Validar que si hay ciudad, debe haber dirección
-        if ciudad and not direccion:
+        elif ciudad and not direccion:
             raise ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
             
         return cleaned_data

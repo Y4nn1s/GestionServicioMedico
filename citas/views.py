@@ -2,23 +2,72 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.http import HttpResponseServerError
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 from .models import Cita, EstadoCita, TipoCita, MotivoCita, NotaCita, TipoNota
-from .forms import CitaForm
+from .forms import CitaForm, EstadoCitaForm, TipoCitaForm, MotivoCitaForm
+from pacientes.models import Paciente
 
 def index(request):
-  
+    # Obtener los parámetros de la URL
+    estado_filtro = request.GET.get('estado')
+    query = request.GET.get('q')
+    
+    # Construir la consulta base para todas las citas
     citas_list = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
+    
+    # Aplicar filtro por estado si se especifica
+    if estado_filtro:
+        if estado_filtro == 'pendientes':
+            citas_list = citas_list.filter(estado__nombre='Programada')
+        elif estado_filtro == 'completadas':
+            citas_list = citas_list.filter(estado__nombre='Completada')
+        elif estado_filtro == 'canceladas':
+            citas_list = citas_list.filter(estado__nombre='Cancelada')
+    
+    # Aplicar búsqueda si se especifica
+    if query:
+        citas_list = citas_list.filter(
+            Q(paciente__nombre__icontains=query) |
+            Q(paciente__apellido__icontains=query) |
+            Q(tipo_cita__nombre__icontains=query) |
+            Q(motivo__nombre__icontains=query)
+        )
+    
+    # Paginación
     paginator = Paginator(citas_list, 10)  # Mostrar 10 citas por página
-
     page_number = request.GET.get('page')
     citas = paginator.get_page(page_number)
-    return render(request, 'citas/index.html', {'citas': citas})
+    
+    # Obtener citas de hoy
+    hoy = timezone.now().date()
+    citas_hoy = Cita.objects.filter(fecha=hoy).select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('hora_inicio')
+    
+    # Obtener estadísticas
+    total_citas = Cita.objects.count()
+    citas_pendientes = Cita.objects.filter(estado__nombre='Programada').count()
+    citas_completadas = Cita.objects.filter(estado__nombre='Completada').count()
+    citas_canceladas = Cita.objects.filter(estado__nombre='Cancelada').count()
+    
+    context = {
+        'citas': citas,
+        'citas_hoy': citas_hoy,
+        'total_citas': total_citas,
+        'citas_pendientes': citas_pendientes,
+        'citas_completadas': citas_completadas,
+        'citas_canceladas': citas_canceladas,
+        'hoy': hoy,
+        'query': query,
+    }
+    
+    return render(request, 'citas/index.html', context)
 
 @transaction.atomic
 def create(request):
@@ -56,7 +105,92 @@ def create(request):
     else:
         form = CitaForm()
     
-    return render(request, 'citas/create.html', {'form': form})
+    # Obtener datos para selects
+    pacientes = Paciente.objects.all().order_by('apellido', 'nombre')
+    estados = EstadoCita.objects.all()
+    tipos = TipoCita.objects.all()
+    motivos = MotivoCita.objects.all()
+    
+    return render(request, 'citas/create.html', {
+        'form': form,
+        'pacientes': pacientes,
+        'estados': estados,
+        'tipos': tipos,
+        'motivos': motivos,
+    })
+
+# Vistas AJAX para crear tipos, motivos y estados desde el formulario
+@require_http_methods(["POST"])
+@csrf_exempt
+def crear_tipo_cita_ajax(request):
+    try:
+        data = json.loads(request.body)
+        form = TipoCitaForm(data)
+        if form.is_valid():
+            tipo = form.save()
+            return JsonResponse({
+                'success': True,
+                'id': tipo.id,
+                'nombre': tipo.nombre
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def crear_motivo_cita_ajax(request):
+    try:
+        data = json.loads(request.body)
+        form = MotivoCitaForm(data)
+        if form.is_valid():
+            motivo = form.save()
+            return JsonResponse({
+                'success': True,
+                'id': motivo.id,
+                'nombre': motivo.nombre
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def crear_estado_cita_ajax(request):
+    try:
+        data = json.loads(request.body)
+        form = EstadoCitaForm(data)
+        if form.is_valid():
+            estado = form.save()
+            return JsonResponse({
+                'success': True,
+                'id': estado.id,
+                'nombre': estado.nombre
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
 
 def show(request, cita_id):
     try:
@@ -107,7 +241,20 @@ def edit(request, cita_id):
     else:
         form = CitaForm(instance=cita)
     
-    return render(request, 'citas/edit.html', {'form': form, 'cita': cita})
+    # Obtener datos para selects
+    pacientes = Paciente.objects.all().order_by('apellido', 'nombre')
+    estados = EstadoCita.objects.all()
+    tipos = TipoCita.objects.all()
+    motivos = MotivoCita.objects.all()
+    
+    return render(request, 'citas/edit.html', {
+        'form': form,
+        'cita': cita,
+        'pacientes': pacientes,
+        'estados': estados,
+        'tipos': tipos,
+        'motivos': motivos,
+    })
 
 @transaction.atomic
 def destroy(request, cita_id):
@@ -197,3 +344,76 @@ def cambiar_estado(request, cita_id, estado_id):
         messages.error(request, f'Error inesperado al cambiar el estado: {str(e)}')
     
     return redirect('citas:show', cita_id=cita_id)
+
+# Vistas AJAX para crear tipos, motivos y estados de cita
+@require_http_methods(["POST"])
+@csrf_exempt
+def crear_tipo_cita_ajax(request):
+    try:
+        data = json.loads(request.body)
+        form = TipoCitaForm(data)
+        if form.is_valid():
+            tipo = form.save()
+            return JsonResponse({
+                'success': True,
+                'id': tipo.id,
+                'nombre': tipo.nombre
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def crear_motivo_cita_ajax(request):
+    try:
+        data = json.loads(request.body)
+        form = MotivoCitaForm(data)
+        if form.is_valid():
+            motivo = form.save()
+            return JsonResponse({
+                'success': True,
+                'id': motivo.id,
+                'nombre': motivo.nombre
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def crear_estado_cita_ajax(request):
+    try:
+        data = json.loads(request.body)
+        form = EstadoCitaForm(data)
+        if form.is_valid():
+            estado = form.save()
+            return JsonResponse({
+                'success': True,
+                'id': estado.id,
+                'nombre': estado.nombre
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
