@@ -5,8 +5,8 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">
-        <div class="card">
-            <div class="card-header">
+        <div class="card card-medical">
+            <div class="card-header-medical text-white text-center">
                 <h3 class="card-title mb-0">
                     <i class="bi bi-person-lines-fill"></i> Editar Paciente
                 </h3>
@@ -264,17 +264,17 @@
                         {% endfor %}
                     </div>
                     
-                    <button type="button" id="agregar-telefono" class="btn btn-outline-primary btn-sm mb-3">
+                    <button type="button" id="agregar-telefono" class="btn btn-outline-medical btn-sm mb-3">
                         <i class="bi bi-plus-circle"></i> Agregar otro teléfono
                     </button>
                     
                     <hr>
                     
                     <div class="d-flex justify-content-between">
-                        <a href="{% url 'pacientes:show' paciente.id %}" class="btn btn-secondary">
+                        <a href="{% url 'pacientes:show' paciente.id %}" class="btn btn-outline-medical">
                             <i class="bi bi-arrow-left"></i> Volver
                         </a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-medical-primary">
                             <i class="bi bi-save"></i> Actualizar Paciente
                         </button>
                     </div>
