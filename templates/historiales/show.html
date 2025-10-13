@@ -1,139 +1,75 @@
 {% extends 'base.html' %}
 
-{% block title %}Detalles del Historial Médico{% endblock %}
+{% block title %}Historial de {{ historial.paciente }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="dashboard-title">Detalles del Historial Médico</h1>
-    <div>
-        <a href="{% url 'historiales:edit' historial.id %}" class="btn btn-warning">
-            <i class="bi bi-pencil"></i> Editar
-        </a>
-        <a href="{% url 'historiales:destroy' historial.id %}" class="btn btn-danger">
-            <i class="bi bi-trash"></i> Eliminar
-        </a>
-    </div>
-</div>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Historial Médico de: <strong>{{ historial.paciente }}</strong></h4>
+            <a href="{% url 'historiales:index' %}" class="btn btn-light btn-sm">Volver al Listado</a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Paciente:</strong> {{ historial.paciente.nombre }} {{ historial.paciente.apellido }}</p>
+                    <p><strong>Cédula:</strong> {{ historial.paciente.numero_documento }}</p>
+                    <p><strong>Email:</strong> {{ historial.paciente.email|default:"No especificado" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Fecha de Nacimiento:</strong> {{ historial.paciente.fecha_nacimiento }} ({{ historial.paciente.edad }} años)</p>
+                    <p><strong>Género:</strong> {{ historial.paciente.get_genero_display }}</p>
+                    <p><strong>Fecha de Creación:</strong> {{ historial.created_at|date:"d/m/Y H:i" }}</p>
+                    <p><strong>Última Actualización:</strong> {{ historial.updated_at|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-person"></i> Información del Paciente
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-3">
-                        <strong>Nombre:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                        <a href="{% url 'pacientes:show' historial.paciente.id %}">
-                            {{ historial.paciente.nombre }} {{ historial.paciente.apellido }}
-                        </a>
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-3">
-                        <strong>Tipo y Número de Documento:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                        {{ historial.paciente.tipo_documento }}: {{ historial.paciente.numero_documento }}
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-3">
-                        <strong>Fecha de Nacimiento:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                        {{ historial.paciente.fecha_nacimiento|date:"d/m/Y" }}
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-3">
-                        <strong>Género:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                        {{ historial.paciente.genero }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-file-medical"></i> Información Médica
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-3">
-                        <strong>Alergias:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                        {{ historial.alergias|linebreaks|default:"No se registraron alergias." }}
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-3">
-                        <strong>Enfermedades Preexistentes:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                        {{ historial.enfermedades_preexistentes|linebreaks|default:"No se registraron enfermedades preexistentes." }}
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-3">
-                        <strong>Medicamentos Actuales:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                        {{ historial.medicamentos_actuales|linebreaks|default:"No se registraron medicamentos actuales." }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-info-circle"></i> Información Adicional
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-5">
-                        <strong>Fecha de Creación:</strong>
-                    </div>
-                    <div class="col-sm-7">
-                        {{ historial.created_at|date:"d/m/Y H:i" }}
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-5">
-                        <strong>Última Actualización:</strong>
-                    </div>
-                    <div class="col-sm-7">
-                        {{ historial.updated_at|date:"d/m/Y H:i" }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+            <hr>
 
-<div class="mt-4">
-    <a href="{% url 'historiales:index' %}" class="btn btn-secondary">
-        <i class="bi bi-arrow-left"></i> Volver al listado
-    </a>
+            <div class="mt-4">
+                <h5>Alergias Conocidas</h5>
+                {% if historial.alergias.all %}
+                    <p>
+                        {% for alergia in historial.alergias.all %}
+                            <span class="badge bg-danger me-1">{{ alergia.nombre }}</span>
+                        {% endfor %}
+                    </p>
+                {% else %}
+                    <p class="text-muted">No se han registrado alergias.</p>
+                {% endif %}
+            </div>
+
+            <div class="mt-4">
+                <h5>Enfermedades Preexistentes</h5>
+                {% if historial.enfermedades_preexistentes.all %}
+                    <p>
+                        {% for enfermedad in historial.enfermedades_preexistentes.all %}
+                            <span class="badge bg-warning text-dark me-1">{{ enfermedad.nombre }}</span>
+                        {% endfor %}
+                    </p>
+                {% else %}
+                    <p class="text-muted">No se han registrado enfermedades preexistentes.</p>
+                {% endif %}
+            </div>
+
+            <div class="mt-4">
+                <h5>Medicamentos Actuales</h5>
+                {% if historial.medicamentos_actuales.all %}
+                    <ul class="list-group">
+                        {% for medicamento in historial.medicamentos_actuales.all %}
+                            <li class="list-group-item">{{ medicamento.nombre }} ({{ medicamento.codigo }})</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No se han registrado medicamentos actuales.</p>
+                {% endif %}
+            </div>
+
+        </div>
+        <div class="card-footer d-flex justify-content-end">
+            <a href="{% url 'historiales:edit' historial.id %}" class="btn btn-success me-2">Editar</a>
+            <a href="{% url 'historiales:destroy' historial.id %}" class="btn btn-danger">Eliminar</a>
+        </div>
+    </div>
 </div>
 {% endblock %}
