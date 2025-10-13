@@ -2,18 +2,24 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
-from .models import HistorialMedico
+from django.db.models import Q
+from .models import HistorialMedico, Alergia, Enfermedad
+from inventario.models import Medicamento
 from .forms import HistorialMedicoForm
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+import json
 
 def index(request):
-    historiales_list = HistorialMedico.objects.all().order_by('-created_at')
-    paginator = Paginator(historiales_list, 10)  # Mostrar 10 historiales por página
+    historiales_list = HistorialMedico.objects.select_related('paciente').prefetch_related(
+        'alergias', 'enfermedades_preexistentes', 'medicamentos_actuales'
+    ).order_by('-updated_at')
+    
+    paginator = Paginator(historiales_list, 10)
     page_number = request.GET.get('page')
     historiales = paginator.get_page(page_number)
+    
     return render(request, 'historiales/index.html', {'historiales': historiales})
-
 
 @transaction.atomic
 def create(request):
@@ -23,18 +29,21 @@ def create(request):
             form.save()
             messages.success(request, 'Historial médico creado correctamente.')
             return redirect('historiales:index')
+        else:
+            messages.error(request, 'Por favor, corrija los errores en el formulario.')
     else:
         form = HistorialMedicoForm()
     
     return render(request, 'historiales/create.html', {'form': form})
 
 def show(request, historial_id):
-    try:
-        historial = get_object_or_404(HistorialMedico, id=historial_id)
-        return render(request, 'historiales/show.html', {'historial': historial})
-    except Exception as e:
-        messages.error(request, f'Error al cargar el historial: {str(e)}')
-        return redirect('historiales:index')
+    historial = get_object_or_404(
+        HistorialMedico.objects.select_related('paciente').prefetch_related(
+            'alergias', 'enfermedades_preexistentes', 'medicamentos_actuales'
+        ),
+        id=historial_id
+    )
+    return render(request, 'historiales/show.html', {'historial': historial})
 
 @transaction.atomic
 def edit(request, historial_id):
@@ -43,18 +52,9 @@ def edit(request, historial_id):
     if request.method == 'POST':
         form = HistorialMedicoForm(request.POST, instance=historial)
         if form.is_valid():
-            try:
-                form.save()
-                messages.success(request, 'Historial médico actualizado correctamente.')
-                return redirect('historiales:index')
-                
-            except ValidationError as e:
-                messages.error(request, f'Error de validación: {", ".join(e.messages)}')
-            except IntegrityError as e:
-                messages.error(request, 'Error de integridad de datos.')
-            except Exception as e:
-                messages.error(request, f'Error inesperado al actualizar el historial: {str(e)}')
-                raise
+            form.save()
+            messages.success(request, 'Historial médico actualizado correctamente.')
+            return redirect('historiales:index')
         else:
             messages.error(request, 'Por favor, corrija los errores en el formulario.')
     else:
@@ -67,28 +67,25 @@ def destroy(request, historial_id):
     historial = get_object_or_404(HistorialMedico, id=historial_id)
     
     if request.method == 'POST':
-        try:
-            # Guardar información para el mensaje antes de eliminar
-            paciente_info = str(historial.paciente)
-            historial.delete()
-            
-            messages.success(request, f'Historial médico de {paciente_info} eliminado correctamente.')
-            return redirect('historiales:index')
-            
-        except Exception as e:
-            messages.error(request, f'Error al eliminar el historial médico: {str(e)}')
-            return redirect('historiales:show', historial_id=historial_id)
+        paciente_info = str(historial.paciente)
+        historial.delete()
+        messages.success(request, f'Historial médico de {paciente_info} eliminado correctamente.')
+        return redirect('historiales:index')
     
     return render(request, 'historiales/destroy.html', {'historial': historial})
 
 def search(request):
     query = request.GET.get('q', '')
-    historiales = HistorialMedico.objects.all().order_by('-created_at')
+    historiales = HistorialMedico.objects.select_related('paciente').order_by('-updated_at')
     
     if query:
         historiales = historiales.filter(
-            paciente__nombre__icontains=query
-        )
+            Q(paciente__nombre__icontains=query) |
+            Q(paciente__apellido__icontains=query) |
+            Q(paciente__numero_documento__icontains=query) |
+            Q(alergias__nombre__icontains=query) |
+            Q(enfermedades_preexistentes__nombre__icontains=query)
+        ).distinct()
     
     paginator = Paginator(historiales, 10)
     page_number = request.GET.get('page')
@@ -98,3 +95,40 @@ def search(request):
         'historiales': historiales_page,
         'query': query
     })
+
+# Vistas para AJAX
+@require_POST
+def crear_alergia_ajax(request):
+    try:
+        data = json.loads(request.body)
+        nombre = data.get('nombre')
+        if not nombre:
+            return JsonResponse({'success': False, 'errors': 'El nombre es requerido.'}, status=400)
+        
+        alergia, created = Alergia.objects.get_or_create(nombre=nombre.strip())
+        
+        if created:
+            return JsonResponse({'success': True, 'id': alergia.id, 'nombre': alergia.nombre})
+        else:
+            return JsonResponse({'success': False, 'errors': 'La alergia ya existe.'}, status=400)
+            
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'errors': 'JSON inválido.'}, status=400)
+
+@require_POST
+def crear_enfermedad_ajax(request):
+    try:
+        data = json.loads(request.body)
+        nombre = data.get('nombre')
+        if not nombre:
+            return JsonResponse({'success': False, 'errors': 'El nombre es requerido.'}, status=400)
+        
+        enfermedad, created = Enfermedad.objects.get_or_create(nombre=nombre.strip())
+        
+        if created:
+            return JsonResponse({'success': True, 'id': enfermedad.id, 'nombre': enfermedad.nombre})
+        else:
+            return JsonResponse({'success': False, 'errors': 'La enfermedad ya existe.'}, status=400)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'errors': 'JSON inválido.'}, status=400)

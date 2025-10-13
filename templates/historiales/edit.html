@@ -1,82 +1,150 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Editar Historial Médico{% endblock %}
+{% block title %}Editar Historial Médico de {{ historial.paciente }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header card-header-medical text-white">
-                <h3 class="card-title mb-0">
-                    <i class="bi bi-journal-medical"></i> Editar Historial Médico
-                </h3>
-            </div>
-            <div class="card-body">
-                <form method="POST">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.paciente.id_for_label }}" class="form-label">
-                            {{ form.paciente.label }}
-                        </label>
-                        {{ form.paciente }}
-                        {% if form.paciente.errors %}
-                            <div class="text-danger">
-                                {{ form.paciente.errors }}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Editando Historial de: <strong>{{ historial.paciente }}</strong></h4>
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Paciente</label>
+                    <input type="text" class="form-control" value="{{ historial.paciente }}" disabled>
+                    <div class="form-text">El paciente no se puede cambiar durante la edición.</div>
+                </div>
+
+                <hr>
+                <h5 class="mb-3">Detalles del Historial</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label d-flex justify-content-between align-items-center">
+                                <span>{{ form.alergias.label }}</span>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#crearAlergiaModal">
+                                    <i class="bi bi-plus-circle"></i> Nuevo
+                                </button>
+                            </label>
+                            <div id="id_alergias_container" class="form-check-container border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                                {% for choice in form.alergias %}
+                                <div class="form-check">
+                                    {{ choice.tag }}
+                                    <label class="form-check-label" for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label>
+                                </div>
+                                {% endfor %}
                             </div>
-                        {% endif %}
-                        <div class="form-text">
-                            El paciente no puede ser modificado una vez creado el historial.
+                            {% for error in form.alergias.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.alergias.id_for_label }}" class="form-label">
-                            {{ form.alergias.label }}
-                        </label>
-                        {{ form.alergias }}
-                        {% if form.alergias.errors %}
-                            <div class="text-danger">
-                                {{ form.alergias.errors }}
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label d-flex justify-content-between align-items-center">
+                                <span>{{ form.enfermedades_preexistentes.label }}</span>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#crearEnfermedadModal">
+                                    <i class="bi bi-plus-circle"></i> Nuevo
+                                </button>
+                            </label>
+                            <div id="id_enfermedades_preexistentes_container" class="form-check-container border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                                {% for choice in form.enfermedades_preexistentes %}
+                                <div class="form-check">
+                                    {{ choice.tag }}
+                                    <label class="form-check-label" for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label>
+                                </div>
+                                {% endfor %}
                             </div>
-                        {% endif %}
+                            {% for error in form.enfermedades_preexistentes.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
                     </div>
-                    
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">{{ form.medicamentos_actuales.label }}</label>
+                    <div class="form-check-container border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                        {% for choice in form.medicamentos_actuales %}
+                        <div class="form-check">
+                            {{ choice.tag }}
+                            <label class="form-check-label" for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-text">Seleccione los medicamentos que el paciente está tomando actualmente.</div>
+                    {% for error in form.medicamentos_actuales.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{% url 'historiales:index' %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Crear Alergia -->
+<div class="modal fade" id="crearAlergiaModal" tabindex="-1" aria-labelledby="crearAlergiaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearAlergiaModalLabel">Crear Nueva Alergia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearAlergiaForm">
                     <div class="mb-3">
-                        <label for="{{ form.enfermedades_preexistentes.id_for_label }}" class="form-label">
-                            {{ form.enfermedades_preexistentes.label }}
-                        </label>
-                        {{ form.enfermedades_preexistentes }}
-                        {% if form.enfermedades_preexistentes.errors %}
-                            <div class="text-danger">
-                                {{ form.enfermedades_preexistentes.errors }}
-                            </div>
-                        {% endif %}
+                        <label for="nueva_alergia_nombre" class="form-label">Nombre de la Alergia</label>
+                        <input type="text" id="nueva_alergia_nombre" class="form-control" required>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.medicamentos_actuales.id_for_label }}" class="form-label">
-                            {{ form.medicamentos_actuales.label }}
-                        </label>
-                        {{ form.medicamentos_actuales }}
-                        {% if form.medicamentos_actuales.errors %}
-                            <div class="text-danger">
-                                {{ form.medicamentos_actuales.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'historiales:show' historial.id %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Volver
-                        </a>
-                        <button type="submit" class="btn btn-medical-primary">
-                            <i class="bi bi-save"></i> Actualizar Historial
-                        </button>
-                    </div>
+                    <button type="submit" class="btn btn-primary">Crear y Añadir</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal para Crear Enfermedad -->
+<div class="modal fade" id="crearEnfermedadModal" tabindex="-1" aria-labelledby="crearEnfermedadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearEnfermedadModalLabel">Crear Nueva Enfermedad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearEnfermedadForm">
+                    <div class="mb-3">
+                        <label for="nueva_enfermedad_nombre" class="form-label">Nombre de la Enfermedad</label>
+                        <input type="text" id="nueva_enfermedad_nombre" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear y Añadir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/historiales_modals.js' %}"></script>
 {% endblock %}

@@ -10,4 +10,7 @@ urlpatterns = [
     path('<int:historial_id>/edit/', views.edit, name='edit'),
     path('<int:historial_id>/destroy/', views.destroy, name='destroy'),
     path('search/', views.search, name='search'),
+    # URLs para AJAX
+    path('ajax/crear-alergia/', views.crear_alergia_ajax, name='crear_alergia_ajax'),
+    path('ajax/crear-enfermedad/', views.crear_enfermedad_ajax, name='crear_enfermedad_ajax'),
 ]
