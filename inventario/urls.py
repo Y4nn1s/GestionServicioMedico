@@ -36,4 +36,9 @@ urlpatterns = [
     
     # URLs para Movimientos
     path('movimientos/', views.listar_movimientos, name='listar_movimientos'),
+
+    # URL para AJAX
+    path('ajax/crear-medicamento/', views.crear_medicamento_ajax, name='crear_medicamento_ajax'),
+    path('ajax/crear-categoria/', views.crear_categoria_ajax, name='crear_categoria_ajax'),
+    path('ajax/crear-proveedor/', views.crear_proveedor_ajax, name='crear_proveedor_ajax'),
 ]

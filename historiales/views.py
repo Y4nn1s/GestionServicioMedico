@@ -21,6 +21,10 @@ def index(request):
     
     return render(request, 'historiales/index.html', {'historiales': historiales})
 
+from inventario.forms import MedicamentoModalForm
+
+# ... (existing code) ...
+
 @transaction.atomic
 def create(request):
     if request.method == 'POST':
@@ -34,7 +38,8 @@ def create(request):
     else:
         form = HistorialMedicoForm()
     
-    return render(request, 'historiales/create.html', {'form': form})
+    medicamento_form = MedicamentoModalForm()
+    return render(request, 'historiales/create.html', {'form': form, 'medicamento_form': medicamento_form})
 
 def show(request, historial_id):
     historial = get_object_or_404(
@@ -60,7 +65,8 @@ def edit(request, historial_id):
     else:
         form = HistorialMedicoForm(instance=historial)
     
-    return render(request, 'historiales/edit.html', {'form': form, 'historial': historial})
+    medicamento_form = MedicamentoModalForm()
+    return render(request, 'historiales/edit.html', {'form': form, 'historial': historial, 'medicamento_form': medicamento_form})
 
 @transaction.atomic
 def destroy(request, historial_id):

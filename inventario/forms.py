@@ -93,3 +93,39 @@ class InventarioForm(forms.ModelForm):
         if fecha_caducidad < date.today():
             raise forms.ValidationError("La fecha de caducidad no puede ser anterior a la fecha actual.")
         return fecha_caducidad
+
+# Formulario simplificado para el modal de creación rápida
+class MedicamentoModalForm(forms.ModelForm):
+    class Meta:
+        model = Medicamento
+        fields = ['nombre', 'categoria', 'proveedor', 'precio_unitario']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'proveedor': forms.Select(attrs={'class': 'form-control'}),
+            'precio_unitario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+    def clean_precio_unitario(self):
+        precio = self.cleaned_data.get('precio_unitario')
+        if precio is not None and precio <= 0:
+            raise forms.ValidationError("El precio unitario debe ser mayor que cero.")
+        return precio
+
+# Formulario para el modal de creación de categorías
+class CategoriaModalForm(forms.ModelForm):
+    class Meta:
+        model = Categoria
+        fields = ['nombre']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+# Formulario para el modal de creación de proveedores
+class ProveedorModalForm(forms.ModelForm):
+    class Meta:
+        model = Proveedor
+        fields = ['nombre']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+        }
