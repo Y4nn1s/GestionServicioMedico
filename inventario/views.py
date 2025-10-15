@@ -3,8 +3,12 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+import json
+
 from .models import Categoria, Proveedor, Medicamento, Inventario, MovimientoInventario
-from .forms import CategoriaForm, ProveedorForm, MedicamentoForm, InventarioForm
+from .forms import CategoriaForm, ProveedorForm, MedicamentoForm, InventarioForm, MedicamentoModalForm, CategoriaModalForm, ProveedorModalForm
 
 # Vistas para Categorías
 def listar_categorias(request):
@@ -96,7 +100,6 @@ def crear_medicamento(request):
     if request.method == 'POST':
         form = MedicamentoForm(request.POST)
         if form.is_valid():
-            # El código se generará automáticamente en el modelo
             medicamento = form.save(commit=False)
             medicamento.save()
             messages.success(request, 'Medicamento creado exitosamente.')
@@ -169,7 +172,6 @@ def eliminar_inventario(request, inventario_id):
 
 # Vista para mostrar stock total por medicamento
 def stock_medicamentos(request):
-    # Obtener todos los medicamentos con su stock actual
     medicamentos_list = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
     for medicamento in medicamentos_list:
         medicamento.stock = medicamento.stock_actual
@@ -192,3 +194,48 @@ def listar_movimientos(request):
 # Vista principal del inventario
 def index(request):
     return render(request, 'inventario/index.html')
+
+# Vista para creación de medicamentos vía AJAX
+@require_POST
+def crear_medicamento_ajax(request):
+    data = request.POST.copy()
+
+    # Manejar creación de categoría al vuelo
+    categoria_val = data.get('categoria')
+    if categoria_val and not categoria_val.isdigit():
+        categoria, _ = Categoria.objects.get_or_create(nombre=categoria_val.strip())
+        data['categoria'] = categoria.id
+
+    # Manejar creación de proveedor al vuelo
+    proveedor_val = data.get('proveedor')
+    if proveedor_val and not proveedor_val.isdigit():
+        proveedor, _ = Proveedor.objects.get_or_create(nombre=proveedor_val.strip())
+        data['proveedor'] = proveedor.id
+
+    form = MedicamentoModalForm(data)
+    if form.is_valid():
+        medicamento = form.save()
+        return JsonResponse({'success': True, 'id': medicamento.id, 'nombre': medicamento.nombre})
+    else:
+        errors = {field: error[0] for field, error in form.errors.items()}
+        return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+@require_POST
+def crear_categoria_ajax(request):
+    form = CategoriaModalForm(request.POST)
+    if form.is_valid():
+        categoria = form.save()
+        return JsonResponse({'success': True, 'id': categoria.id, 'nombre': categoria.nombre})
+    else:
+        errors = {field: error[0] for field, error in form.errors.items()}
+        return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+@require_POST
+def crear_proveedor_ajax(request):
+    form = ProveedorModalForm(request.POST)
+    if form.is_valid():
+        proveedor = form.save()
+        return JsonResponse({'success': True, 'id': proveedor.id, 'nombre': proveedor.nombre})
+    else:
+        errors = {field: error[0] for field, error in form.errors.items()}
+        return JsonResponse({'success': False, 'errors': errors}, status=400)
