@@ -13,4 +13,8 @@ urlpatterns = [
     # URLs AJAX para cargar datos dinámicamente
     path('ajax/cargar-estados/', views.cargar_estados, name='cargar_estados'),
     path('ajax/cargar-ciudades/', views.cargar_ciudades, name='cargar_ciudades'),
+
+    # URLs de Exportación
+    path('exportar/pdf/', views.exportar_pacientes_pdf, name='exportar_pacientes_pdf'),
+    path('exportar/excel/', views.exportar_pacientes_excel, name='exportar_pacientes_excel'),
 ]
