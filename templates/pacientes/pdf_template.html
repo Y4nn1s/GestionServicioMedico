@@ -17,13 +17,45 @@
         #header_content .doc-title { font-size: 12pt; text-align: right; vertical-align: middle; color: #6c757d; }
         #footer_content { text-align: right; font-size: 9pt; color: #6c757d; }
     h1.patient-name { font-size: 24pt; color: #d2031d; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #d2031d; padding-bottom: 10px; }
-        h2.section-title { font-size: 15pt; color: #343a40; border-bottom: 1px solid #dee2e6; padding-bottom: 5px; margin-top: 25px; margin-bottom: 15px; }
-        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #dee2e6; table-layout: fixed;}
+        h2.section-title {
+            font-size: 14pt;
+            background-color: #d2031d;
+            color: #ffffff;
+            padding: 10px;
+            margin-top: 25px;
+            margin-bottom: 0;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            table-layout: fixed;
+        }
         .info-table tr:nth-child(even) { background-color: #f8f9fa; }
-        .info-table td { padding: 10px; border: none; vertical-align: middle; word-wrap: break-word; }
-        .info-table td:first-child { font-weight: bold; color: #495057; width: 30%; }
+        .info-table td {
+            padding: 12px 10px;
+            border: none;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+        .info-table tr:last-child td { border-bottom: none; }
+        .info-table td:first-child {
+            font-weight: bold;
+            color: #495057;
+            width: 30%;
+        }
         .info-table td:last-child { width: 70%; }
-        p { line-height: 1.5; }
+        .info-block {
+            padding: 12px 10px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            margin-bottom: 25px;
+            background-color: #ffffff;
+        }
+        p { line-height: 1.5; margin:0; }
         .page-break { page-break-before: always; }
     </style>
 </head>
@@ -62,7 +94,9 @@
         </table>
 
         <h2 class="section-title">Dirección de Contacto</h2>
-        <p>{% if paciente.direccion %}{{ paciente.direccion.direccion }}, {{ paciente.direccion.ciudad.nombre }}, {{ paciente.direccion.ciudad.estado.nombre }}{% else %}No hay dirección registrada.{% endif %}</p>
+        <div class="info-block">
+            <p>{% if paciente.direccion %}{{ paciente.direccion.direccion }}, {{ paciente.direccion.ciudad.nombre }}, {{ paciente.direccion.ciudad.estado.nombre }}{% else %}No hay dirección registrada.{% endif %}</p>
+        </div>
 
         <h2 class="section-title">Teléfonos Registrados</h2>
         {% if paciente.telefonos.all %}
@@ -72,7 +106,9 @@
                 {% endfor %}
             </table>
         {% else %}
-            <p>No hay teléfonos registrados.</p>
+            <div class="info-block">
+                <p>No hay teléfonos registrados.</p>
+            </div>
         {% endif %}
 
         {% if not forloop.last %}
