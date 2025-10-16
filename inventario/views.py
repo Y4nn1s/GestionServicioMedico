@@ -3,8 +3,13 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
+import datetime
+from sistema_medico.settings import BASE_DIR
 import json
 
 from .models import Categoria, Proveedor, Medicamento, Inventario, MovimientoInventario
@@ -182,6 +187,119 @@ def stock_medicamentos(request):
     medicamentos = paginator.get_page(page_number)
     
     return render(request, 'inventario/stock_medicamentos.html', {'medicamentos': medicamentos})
+
+# --- Vistas de Exportación --- #
+
+def exportar_stock_pdf(request):
+    medicamentos = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'medicamentos': medicamentos,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/stock_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_stock_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_medicamentos_pdf(request):
+    medicamentos = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'medicamentos': medicamentos,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/medicamentos_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_medicamentos_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_proveedores_pdf(request):
+    proveedores = Proveedor.objects.all().order_by('nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'proveedores': proveedores,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/proveedores_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_proveedores_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_categorias_pdf(request):
+    categorias = Categoria.objects.all().order_by('nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'categorias': categorias,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/categorias_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_categorias_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_inventario_pdf(request):
+    inventario = Inventario.objects.select_related('medicamento').all().order_by('-created_at')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'inventario': inventario,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/inventario_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_inventario_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
 
 # Vistas para Movimientos
 def listar_movimientos(request):

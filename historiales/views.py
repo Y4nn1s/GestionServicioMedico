@@ -3,6 +3,13 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
+import datetime
+from sistema_medico.settings import BASE_DIR
+
 from .models import HistorialMedico, Alergia, Enfermedad
 from inventario.models import Medicamento
 from .forms import HistorialMedicoForm
@@ -101,6 +108,31 @@ def search(request):
         'historiales': historiales_page,
         'query': query
     })
+
+# --- Vistas de Exportación --- #
+
+def exportar_historial_pdf(request, historial_id):
+    historial = get_object_or_404(HistorialMedico, id=historial_id)
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'historial': historial,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('historiales/pdf_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="historial_{}_{}.pdf"'.format(historial.paciente.numero_documento, datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
 
 # Vistas para AJAX
 @require_POST
