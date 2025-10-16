@@ -3,6 +3,8 @@
 .env.local
 .env.*
 QWEN.md
+GEMINI.md
+PROJECT_SUMMARY.md
 .qwen
 .github
 
