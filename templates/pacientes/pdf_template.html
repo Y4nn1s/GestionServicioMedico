@@ -13,14 +13,14 @@
         #header_content, #footer_content { width: 100%; }
         #header_content table, #footer_content table { width: 100%; }
         #header_content .logo { width: 50px; vertical-align: middle; }
-        #header_content .system-name { font-size: 14pt; font-weight: bold; color: #0d6efd; vertical-align: middle; padding-left: 10px; }
+    #header_content .system-name { font-size: 14pt; font-weight: bold; color: #d2031d; vertical-align: middle; padding-left: 10px; }
         #header_content .doc-title { font-size: 12pt; text-align: right; vertical-align: middle; color: #6c757d; }
         #footer_content { text-align: right; font-size: 9pt; color: #6c757d; }
-        h1.patient-name { font-size: 24pt; color: #0d6efd; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #0d6efd; padding-bottom: 10px; }
+    h1.patient-name { font-size: 24pt; color: #d2031d; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #d2031d; padding-bottom: 10px; }
         h2.section-title { font-size: 15pt; color: #343a40; border-bottom: 1px solid #dee2e6; padding-bottom: 5px; margin-top: 25px; margin-bottom: 15px; }
-        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #dee2e6; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #dee2e6; table-layout: fixed; }
         .info-table tr:nth-child(even) { background-color: #f8f9fa; }
-        .info-table td { padding: 10px; border: none; vertical-align: top; }
+        .info-table td { padding: 10px; border: none; vertical-align: top; word-wrap: break-word; }
         .info-table td:first-child { font-weight: bold; width: 170px; color: #495057; }
         p { line-height: 1.5; }
         .page-break { page-break-before: always; }
@@ -30,14 +30,15 @@
     <div id="header_content">
         <table>
             <tr>
-                <td>
-                    <img src="{{ logo_path }}" class="logo">
-                    <span class="system-name">Sistema de Gestión Médica UNEARTE</span>
+                <td style="width: 60%;">
+                    <img src="{{ logo_path }}" class="logo" style="vertical-align: middle;">
+                    <span class="system-name" style="vertical-align: middle;">Sistema de Gestión Médica UNEARTE</span>
                 </td>
-                <td class="doc-title">Dossier de Paciente</td>
+                <td class="doc-title" style="width: 40%;">Dossier de Paciente</td>
             </tr>
         </table>
     </div>
+    <div style="margin-top: 20px;">
     <div id="footer_content">
         <table>
             <tr>
@@ -77,5 +78,6 @@
             <div class="page-break"></div>
         {% endif %}
     {% endfor %}
+    </div>
 </body>
 </html>
