@@ -3,17 +3,27 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import transaction
-from .models import Paciente, TipoDocumento, Estado, Ciudad, Direccion, Telefono, TipoTelefono, Pais
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
+import datetime
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+
+from .models import Paciente, Pais, Estado, Ciudad, Direccion, Telefono
 from .forms import PacienteForm, DireccionFormSet, TelefonoFormSet
-from .forms import DireccionForm, TelefonoForm
+from sistema_medico.settings import BASE_DIR
+
+# --- Vistas CRUD y de Búsqueda --- #
 
 def index(request):
     pacientes_list = Paciente.objects.all().order_by('apellido', 'nombre')
-    paginator = Paginator(pacientes_list, 10)  # Mostrar 10 pacientes por página
+    paginator = Paginator(pacientes_list, 10)
     page_number = request.GET.get('page')
     pacientes = paginator.get_page(page_number)
     return render(request, 'pacientes/index.html', {'pacientes': pacientes})
-
 
 @transaction.atomic
 def create(request):
@@ -21,51 +31,21 @@ def create(request):
         paciente_form = PacienteForm(request.POST)
         direccion_formset = DireccionFormSet(request.POST)
         telefono_formset = TelefonoFormSet(request.POST)
-        
-        # Imprimir errores para debugging
-        if not paciente_form.is_valid():
-            print("Errores en paciente_form:", paciente_form.errors)
-        if not direccion_formset.is_valid():
-            print("Errores en direccion_formset:", direccion_formset.errors)
-        if not telefono_formset.is_valid():
-            print("Errores en telefono_formset:", telefono_formset.errors)
-        
-        # Cargar los querysets para los formularios de dirección
-        for form in direccion_formset:
-            if form.is_bound:
-                # Si el formulario está bound, cargar los querysets según los datos enviados
-                ciudad_id = request.POST.get(form.prefix + '-ciudad')
-                if ciudad_id:
-                    try:
-                        ciudad = Ciudad.objects.get(id=ciudad_id)
-                        estado = ciudad.estado
-                        pais = estado.pais
-                        form.fields['ciudad'].queryset = Ciudad.objects.filter(estado=estado)
-                    except Ciudad.DoesNotExist:
-                        pass  # El formulario mostrará el error de validación
-        
         if paciente_form.is_valid() and direccion_formset.is_valid() and telefono_formset.is_valid():
-            try:
-                paciente = paciente_form.save()
-                direccion_formset.instance = paciente
-                direccion_formset.save()
-                telefono_formset.instance = paciente
-                telefono_formset.save()
-                messages.success(request, 'Paciente creado correctamente.')
-                return redirect('pacientes:index')
-            except Exception as e:
-                messages.error(request, f'Error al crear el paciente: {str(e)}')
-                print("Error al crear el paciente:", str(e))
+            paciente = paciente_form.save()
+            direccion_formset.instance = paciente
+            direccion_formset.save()
+            telefono_formset.instance = paciente
+            telefono_formset.save()
+            messages.success(request, 'Paciente creado correctamente.')
+            return redirect('pacientes:index')
         else:
             messages.error(request, 'Por favor, corrija los errores en el formulario.')
     else:
         paciente_form = PacienteForm()
         direccion_formset = DireccionFormSet()
         telefono_formset = TelefonoFormSet()
-    
-    # Obtener datos para los selects dinámicos
     paises = Pais.objects.all().order_by('nombre')
-    
     return render(request, 'pacientes/create.html', {
         'form': paciente_form,
         'direccion_formset': direccion_formset,
@@ -83,16 +63,13 @@ def show(request, paciente_id):
         'telefonos': telefonos
     })
 
-
 @transaction.atomic
 def edit(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
-    
     if request.method == 'POST':
         paciente_form = PacienteForm(request.POST, instance=paciente)
         direccion_formset = DireccionFormSet(request.POST, instance=paciente)
         telefono_formset = TelefonoFormSet(request.POST, instance=paciente)
-        
         if paciente_form.is_valid() and direccion_formset.is_valid() and telefono_formset.is_valid():
             paciente_form.save()
             direccion_formset.save()
@@ -103,35 +80,7 @@ def edit(request, paciente_id):
         paciente_form = PacienteForm(instance=paciente)
         direccion_formset = DireccionFormSet(instance=paciente)
         telefono_formset = TelefonoFormSet(instance=paciente)
-    
-    # Obtener datos para los selects dinámicos
     paises = Pais.objects.all().order_by('nombre')
-    
-    # Cargar datos iniciales para los formularios de dirección
-    for form in direccion_formset:
-        if form.instance and form.instance.pk:
-            # Si el formulario tiene una instancia existente, cargar los datos relacionados
-            if hasattr(form.instance, 'ciudad') and form.instance.ciudad:
-                ciudad = form.instance.ciudad
-                estado = ciudad.estado
-                pais = estado.pais
-                # Cargar ciudades disponibles para el estado
-                form.fields['ciudad'].queryset = Ciudad.objects.filter(estado=estado)
-                # Establecer la ciudad existente como inicial
-                form.fields['ciudad'].initial = ciudad
-            else:
-                # Si no hay ciudad asociada, cargar todas las ciudades
-                form.fields['ciudad'].queryset = Ciudad.objects.all()
-        else:
-            # Para formularios nuevos, cargar todas las ciudades
-            form.fields['ciudad'].queryset = Ciudad.objects.all()
-    
-    # Cargar datos iniciales para los formularios de teléfono
-    for form in telefono_formset:
-        if form.instance and form.instance.pk:
-            # Los datos ya deberían cargarse automáticamente por el formset
-            pass
-    
     return render(request, 'pacientes/edit.html', {
         'form': paciente_form,
         'direccion_formset': direccion_formset,
@@ -140,47 +89,28 @@ def edit(request, paciente_id):
         'paises': paises,
     })
 
-
 @transaction.atomic
 def destroy(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
-    
     if request.method == 'POST':
-        try:
-            # Guardar información para el mensaje antes de eliminar
-            paciente_info = f"{paciente.nombre} {paciente.apellido}"
-            paciente.delete()
-            
-            messages.success(request, f'Paciente {paciente_info} eliminado correctamente.')
-            return redirect('pacientes:index')
-            
-        except Exception as e:
-            messages.error(request, f'Error al eliminar el paciente: {str(e)}')
-            return redirect('pacientes:show', paciente_id=paciente_id)
-    
+        paciente_info = f"{paciente.nombre} {paciente.apellido}"
+        paciente.delete()
+        messages.success(request, f'Paciente {paciente_info} eliminado correctamente.')
+        return redirect('pacientes:index')
     return render(request, 'pacientes/destroy.html', {'paciente': paciente})
 
 def search(request):
     query = request.GET.get('q', '')
     pacientes = Paciente.objects.all().order_by('apellido', 'nombre')
-    
     if query:
-        pacientes = pacientes.filter(
-            Q(nombre__icontains=query) |
-            Q(apellido__icontains=query) |
-            Q(numero_documento__icontains=query)
-        )
-    
+        pacientes = pacientes.filter(Q(nombre__icontains=query) | Q(apellido__icontains=query) | Q(numero_documento__icontains=query))
     paginator = Paginator(pacientes, 10)
     page_number = request.GET.get('page')
     pacientes_page = paginator.get_page(page_number)
-    
-    return render(request, 'pacientes/search.html', {
-        'pacientes': pacientes_page,
-        'query': query
-    })
+    return render(request, 'pacientes/search.html', {'pacientes': pacientes_page, 'query': query})
 
-# Vistas AJAX para cargar datos dinámicamente
+# --- Vistas AJAX --- #
+
 def cargar_estados(request):
     pais_id = request.GET.get('pais_id')
     estados = Estado.objects.filter(pais_id=pais_id).order_by('nombre')
@@ -190,3 +120,78 @@ def cargar_ciudades(request):
     estado_id = request.GET.get('estado_id')
     ciudades = Ciudad.objects.filter(estado_id=estado_id).order_by('nombre')
     return render(request, 'pacientes/dropdown_list_options.html', {'opciones': ciudades})
+
+# --- Vistas de Exportación --- #
+
+def exportar_pacientes_pdf(request):
+    pacientes = Paciente.objects.all().select_related('direccion__ciudad__estado__pais').prefetch_related('telefonos__tipo_telefono').order_by('apellido', 'nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'pacientes': pacientes,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('pacientes/pdf_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="dossier_pacientes_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_pacientes_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="listado_pacientes_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Pacientes"
+    ws.freeze_panes = 'A2'
+    headers = ['Cédula', 'Nombre', 'Apellido', 'Fecha de Nacimiento', 'Edad', 'Género', 'Email', 'Dirección', 'Ciudad', 'Estado', 'País', 'Teléfonos']
+    ws.append(headers)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="0d6efd", end_color="0d6efd", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    pacientes = Paciente.objects.all().select_related('direccion__ciudad__estado__pais').prefetch_related('telefonos').order_by('apellido', 'nombre')
+    for paciente in pacientes:
+        direccion_obj = paciente.direccion
+        dir_completa, ciudad, estado, pais = "N/A", "N/A", "N/A", "N/A"
+        if direccion_obj:
+            dir_completa = direccion_obj.direccion
+            if direccion_obj.ciudad:
+                ciudad = direccion_obj.ciudad.nombre
+                if direccion_obj.ciudad.estado:
+                    estado = direccion_obj.ciudad.estado.nombre
+                    if direccion_obj.ciudad.estado.pais:
+                        pais = direccion_obj.ciudad.estado.pais.nombre
+        telefonos = ", ".join([t.numero for t in paciente.telefonos.all()])
+        ws.append([
+            paciente.numero_documento, paciente.nombre, paciente.apellido, paciente.fecha_nacimiento, paciente.edad,
+            paciente.get_genero_display(), paciente.email or 'N/A', dir_completa, ciudad, estado, pais, telefonos
+        ])
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    wb.save(response)
+    return response
