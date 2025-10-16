@@ -17,21 +17,22 @@
         #header_content .doc-title { font-size: 12pt; text-align: right; vertical-align: middle; color: #6c757d; }
         #footer_content { text-align: right; font-size: 9pt; color: #6c757d; }
     h1.patient-name { font-size: 24pt; color: #d2031d; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #d2031d; padding-bottom: 10px; }
-        h2.section-title {
-            font-size: 14pt;
-            background-color: #d2031d;
-            color: #ffffff;
-            padding: 10px;
-            margin-top: 25px;
-            margin-bottom: 0;
-        }
         .info-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 25px;
-            border: 1px solid #dee2e6;
-            border-top: none;
+            border: 1px solid #d2031d;
             table-layout: fixed;
+        }
+        .info-table thead {
+            display: table-header-group;
+        }
+        .info-table th {
+            font-size: 14pt;
+            background-color: #d2031d;
+            color: #ffffff;
+            padding: 10px;
+            text-align: left;
         }
         .info-table tr:nth-child(even) { background-color: #f8f9fa; }
         .info-table td {
@@ -48,13 +49,6 @@
             width: 30%;
         }
         .info-table td:last-child { width: 70%; }
-        .info-block {
-            padding: 12px 10px;
-            border: 1px solid #dee2e6;
-            border-top: none;
-            margin-bottom: 25px;
-            background-color: #ffffff;
-        }
         p { line-height: 1.5; margin:0; }
         .page-break { page-break-before: always; }
     </style>
@@ -83,33 +77,53 @@
 
     {% for paciente in pacientes %}
         <h1 class="patient-name">{{ paciente.apellido|upper }}, {{ paciente.nombre }}</h1>
-        
-        <h2 class="section-title">Información Personal</h2>
+
         <table class="info-table">
-            <tr><td>Cédula de Identidad</td><td>{{ paciente.numero_documento }}</td></tr>
-            <tr><td>Correo Electrónico</td><td>{{ paciente.email|default:"No especificado" }}</td></tr>
-            <tr><td>Fecha de Nacimiento</td><td>{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</td></tr>
-            <tr><td>Edad Actual</td><td>{{ paciente.edad }} años</td></tr>
-            <tr><td>Género</td><td>{{ paciente.get_genero_display }}</td></tr>
+            <thead>
+                <tr>
+                    <th colspan="2">Información Personal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Cédula de Identidad</td><td>{{ paciente.numero_documento }}</td></tr>
+                <tr><td>Correo Electrónico</td><td>{{ paciente.email|default:"No especificado" }}</td></tr>
+                <tr><td>Fecha de Nacimiento</td><td>{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</td></tr>
+                <tr><td>Edad Actual</td><td>{{ paciente.edad }} años</td></tr>
+                <tr><td>Género</td><td>{{ paciente.get_genero_display }}</td></tr>
+            </tbody>
         </table>
 
-        <h2 class="section-title">Dirección de Contacto</h2>
-        <div class="info-block">
-            <p>{% if paciente.direccion %}{{ paciente.direccion.direccion }}, {{ paciente.direccion.ciudad.nombre }}, {{ paciente.direccion.ciudad.estado.nombre }}{% else %}No hay dirección registrada.{% endif %}</p>
-        </div>
+        <table class="info-table">
+            <thead>
+                <tr>
+                    <th colspan="2">Dirección de Contacto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="2">{% if paciente.direccion %}{{ paciente.direccion.direccion }}, {{ paciente.direccion.ciudad.nombre }}, {{ paciente.direccion.ciudad.estado.nombre }}{% else %}No hay dirección registrada.{% endif %}</td>
+                </tr>
+            </tbody>
+        </table>
 
-        <h2 class="section-title">Teléfonos Registrados</h2>
-        {% if paciente.telefonos.all %}
-            <table class="info-table">
-                {% for tel in paciente.telefonos.all %}
-                    <tr><td>{{ tel.tipo_telefono.nombre }}</td><td>{{ tel.numero }} {% if tel.es_principal %}(Principal){% endif %}</td></tr>
-                {% endfor %}
-            </table>
-        {% else %}
-            <div class="info-block">
-                <p>No hay teléfonos registrados.</p>
-            </div>
-        {% endif %}
+        <table class="info-table">
+            <thead>
+                <tr>
+                    <th colspan="2">Teléfonos Registrados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if paciente.telefonos.all %}
+                    {% for tel in paciente.telefonos.all %}
+                        <tr><td>{{ tel.tipo_telefono.nombre }}</td><td>{{ tel.numero }} {% if tel.es_principal %}(Principal){% endif %}</td></tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="2">No hay teléfonos registrados.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
 
         {% if not forloop.last %}
             <div class="page-break"></div>
