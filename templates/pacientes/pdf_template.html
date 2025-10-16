@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: letter;
+            margin: 1in;
+            @frame header_frame { -pdf-frame-content: header_content; left: 0.5in; right: 0.5in; top: 0.5in; height: 0.7in; }
+            @frame footer_frame { -pdf-frame-content: footer_content; left: 0.5in; right: 0.5in; bottom: 0.5in; height: 0.5in; }
+        }
+        body { font-family: 'Helvetica', sans-serif; color: #343a40; font-size: 11pt; }
+        #header_content, #footer_content { width: 100%; }
+        #header_content table, #footer_content table { width: 100%; }
+        #header_content .logo { width: 50px; vertical-align: middle; }
+        #header_content .system-name { font-size: 14pt; font-weight: bold; color: #0d6efd; vertical-align: middle; padding-left: 10px; }
+        #header_content .doc-title { font-size: 12pt; text-align: right; vertical-align: middle; color: #6c757d; }
+        #footer_content { text-align: right; font-size: 9pt; color: #6c757d; }
+        h1.patient-name { font-size: 24pt; color: #0d6efd; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #0d6efd; padding-bottom: 10px; }
+        h2.section-title { font-size: 15pt; color: #343a40; border-bottom: 1px solid #dee2e6; padding-bottom: 5px; margin-top: 25px; margin-bottom: 15px; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #dee2e6; }
+        .info-table tr:nth-child(even) { background-color: #f8f9fa; }
+        .info-table td { padding: 10px; border: none; vertical-align: top; }
+        .info-table td:first-child { font-weight: bold; width: 170px; color: #495057; }
+        p { line-height: 1.5; }
+        .page-break { page-break-before: always; }
+    </style>
+</head>
+<body>
+    <div id="header_content">
+        <table>
+            <tr>
+                <td>
+                    <img src="{{ logo_path }}" class="logo">
+                    <span class="system-name">Sistema de Gestión Médica UNEARTE</span>
+                </td>
+                <td class="doc-title">Dossier de Paciente</td>
+            </tr>
+        </table>
+    </div>
+    <div id="footer_content">
+        <table>
+            <tr>
+                <td style="text-align: left;">Página <pdf:pagenumber> de <pdf:pagecount></td>
+                <td style="text-align: right;">Generado el {{ generation_date }}</td>
+            </tr>
+        </table>
+    </div>
+
+    {% for paciente in pacientes %}
+        <h1 class="patient-name">{{ paciente.apellido|upper }}, {{ paciente.nombre }}</h1>
+        
+        <h2 class="section-title">Información Personal</h2>
+        <table class="info-table">
+            <tr><td>Cédula de Identidad</td><td>{{ paciente.numero_documento }}</td></tr>
+            <tr><td>Correo Electrónico</td><td>{{ paciente.email|default:"No especificado" }}</td></tr>
+            <tr><td>Fecha de Nacimiento</td><td>{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</td></tr>
+            <tr><td>Edad Actual</td><td>{{ paciente.edad }} años</td></tr>
+            <tr><td>Género</td><td>{{ paciente.get_genero_display }}</td></tr>
+        </table>
+
+        <h2 class="section-title">Dirección de Contacto</h2>
+        <p>{% if paciente.direccion %}{{ paciente.direccion.direccion }}, {{ paciente.direccion.ciudad.nombre }}, {{ paciente.direccion.ciudad.estado.nombre }}{% else %}No hay dirección registrada.{% endif %}</p>
+
+        <h2 class="section-title">Teléfonos Registrados</h2>
+        {% if paciente.telefonos.all %}
+            <table class="info-table">
+                {% for tel in paciente.telefonos.all %}
+                    <tr><td>{{ tel.tipo_telefono.nombre }}</td><td>{{ tel.numero }} {% if tel.es_principal %}(Principal){% endif %}</td></tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No hay teléfonos registrados.</p>
+        {% endif %}
+
+        {% if not forloop.last %}
+            <div class="page-break"></div>
+        {% endif %}
+    {% endfor %}
+</body>
+</html>
