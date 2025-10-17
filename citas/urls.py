@@ -17,4 +17,8 @@ urlpatterns = [
     path('ajax/crear-tipo-cita/', views.crear_tipo_cita_ajax, name='crear_tipo_cita_ajax'),
     path('ajax/crear-motivo-cita/', views.crear_motivo_cita_ajax, name='crear_motivo_cita_ajax'),
     path('ajax/crear-estado-cita/', views.crear_estado_cita_ajax, name='crear_estado_cita_ajax'),
+
+    # URLs de Exportación
+    path('exportar/pdf/', views.exportar_citas_pdf, name='exportar_citas_pdf'),
+    path('exportar/excel/', views.exportar_citas_excel, name='exportar_citas_excel'),
 ]

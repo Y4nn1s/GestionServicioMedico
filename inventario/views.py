@@ -3,9 +3,16 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
+import datetime
+from sistema_medico.settings import BASE_DIR
 import json
+
+from django.contrib.auth.decorators import login_required
 
 from .models import Categoria, Proveedor, Medicamento, Inventario, MovimientoInventario
 from .forms import CategoriaForm, ProveedorForm, MedicamentoForm, InventarioForm, MedicamentoModalForm, CategoriaModalForm, ProveedorModalForm
@@ -139,12 +146,24 @@ def listar_inventario(request):
         'today': timezone.now().date()
     })
 
+@login_required
 def crear_inventario(request):
     if request.method == 'POST':
         form = InventarioForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Existencia de inventario creada exitosamente.')
+            # Guardar la existencia de inventario
+            inventario = form.save()
+            
+            # Crear el movimiento de inventario correspondiente
+            MovimientoInventario.objects.create(
+                medicamento=inventario.medicamento,
+                tipo='entrada',
+                cantidad=inventario.cantidad,
+                descripcion=f"Ingreso de lote #{inventario.lote}",
+                usuario=request.user.username
+            )
+            
+            messages.success(request, 'Existencia de inventario creada y movimiento de entrada registrado exitosamente.')
             return redirect('inventario:listar_inventario')
     else:
         form = InventarioForm()
@@ -183,6 +202,119 @@ def stock_medicamentos(request):
     
     return render(request, 'inventario/stock_medicamentos.html', {'medicamentos': medicamentos})
 
+# --- Vistas de Exportación --- #
+
+def exportar_stock_pdf(request):
+    medicamentos = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'medicamentos': medicamentos,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/stock_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_stock_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_medicamentos_pdf(request):
+    medicamentos = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'medicamentos': medicamentos,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/medicamentos_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_medicamentos_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_proveedores_pdf(request):
+    proveedores = Proveedor.objects.all().order_by('nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'proveedores': proveedores,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/proveedores_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_proveedores_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_categorias_pdf(request):
+    categorias = Categoria.objects.all().order_by('nombre')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'categorias': categorias,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/categorias_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_categorias_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_inventario_pdf(request):
+    inventario = Inventario.objects.select_related('medicamento').all().order_by('-created_at')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'inventario': inventario,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('inventario/pdf/inventario_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_inventario_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+
 # Vistas para Movimientos
 def listar_movimientos(request):
     movimientos_list = MovimientoInventario.objects.select_related('medicamento').all().order_by('-fecha')
@@ -190,6 +322,34 @@ def listar_movimientos(request):
     page_number = request.GET.get('page')
     movimientos = paginator.get_page(page_number)
     return render(request, 'inventario/movimientos/listar.html', {'movimientos': movimientos})
+
+@login_required
+def crear_salida_inventario(request):
+    if request.method == 'POST':
+        form = MovimientoSalidaForm(request.POST)
+        if form.is_valid():
+            medicamento = form.cleaned_data['medicamento']
+            cantidad = form.cleaned_data['cantidad']
+            descripcion = form.cleaned_data['descripcion']
+
+            MovimientoInventario.objects.create(
+                medicamento=medicamento,
+                tipo='salida',
+                cantidad=cantidad,
+                descripcion=descripcion,
+                usuario=request.user.username
+            )
+            
+            messages.success(request, f'Salida de {cantidad} unidad(es) de {medicamento.nombre} registrada exitosamente.')
+            return redirect('inventario:listar_movimientos')
+    else:
+        form = MovimientoSalidaForm()
+    
+    return render(request, 'inventario/movimientos/crear_salida.html', {
+        'form': form,
+        'titulo': 'Registrar Salida de Medicamento'
+    })
+
 
 # Vista principal del inventario
 def index(request):
@@ -222,20 +382,28 @@ def crear_medicamento_ajax(request):
 
 @require_POST
 def crear_categoria_ajax(request):
-    form = CategoriaModalForm(request.POST)
-    if form.is_valid():
-        categoria = form.save()
-        return JsonResponse({'success': True, 'id': categoria.id, 'nombre': categoria.nombre})
-    else:
-        errors = {field: error[0] for field, error in form.errors.items()}
-        return JsonResponse({'success': False, 'errors': errors}, status=400)
+    try:
+        data = json.loads(request.body)
+        form = CategoriaModalForm(data)
+        if form.is_valid():
+            categoria = form.save()
+            return JsonResponse({'success': True, 'id': categoria.id, 'nombre': categoria.nombre})
+        else:
+            errors = {field: error[0] for field, error in form.errors.items()}
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'errors': 'Invalid JSON'}, status=400)
 
 @require_POST
 def crear_proveedor_ajax(request):
-    form = ProveedorModalForm(request.POST)
-    if form.is_valid():
-        proveedor = form.save()
-        return JsonResponse({'success': True, 'id': proveedor.id, 'nombre': proveedor.nombre})
-    else:
-        errors = {field: error[0] for field, error in form.errors.items()}
-        return JsonResponse({'success': False, 'errors': errors}, status=400)
+    try:
+        data = json.loads(request.body)
+        form = ProveedorModalForm(data)
+        if form.is_valid():
+            proveedor = form.save()
+            return JsonResponse({'success': True, 'id': proveedor.id, 'nombre': proveedor.nombre})
+        else:
+            errors = {field: error[0] for field, error in form.errors.items()}
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'errors': 'Invalid JSON'}, status=400)

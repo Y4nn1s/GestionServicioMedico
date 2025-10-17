@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 from datetime import date
 
 class Categoria(models.Model):
@@ -63,9 +64,10 @@ class Medicamento(models.Model):
     
     @property
     def stock_actual(self):
-        # Calcular el stock actual sumando todas las existencias
-        existencias = self.inventario_set.all()
-        return sum([existencia.cantidad for existencia in existencias])
+        # Calcular el stock real a partir de los movimientos de inventario
+        entradas = self.movimientoinventario_set.filter(tipo='entrada').aggregate(total=Sum('cantidad'))['total'] or 0
+        salidas = self.movimientoinventario_set.filter(tipo='salida').aggregate(total=Sum('cantidad'))['total'] or 0
+        return entradas - salidas
     
     @property
     def estado_stock(self):

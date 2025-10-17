@@ -111,9 +111,17 @@
             <h1>
                 <i class="bi bi-calendar-event"></i> Dashboard de Citas
             </h1>
-            <a href="{% url 'citas:create' %}" class="btn btn-primary">
-                <i class="bi bi-calendar-plus"></i> Nueva Cita
-            </a>
+            <div class="btn-group" role="group">
+                <a href="{% url 'citas:create' %}" class="btn btn-primary">
+                    <i class="bi bi-calendar-plus"></i> Nueva Cita
+                </a>
+                <a href="{% url 'citas:exportar_citas_pdf' %}" class="btn btn-outline-danger">
+                    <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+                </a>
+                <a href="{% url 'citas:exportar_citas_excel' %}" class="btn btn-outline-success">
+                    <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+                </a>
+            </div>
         </div>
         
         <!-- Estadísticas principales como enlaces filtrables -->

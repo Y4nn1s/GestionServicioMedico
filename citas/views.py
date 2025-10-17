@@ -10,6 +10,14 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
+import datetime
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+from sistema_medico.settings import BASE_DIR
 
 from .models import Cita, EstadoCita, TipoCita, MotivoCita, NotaCita, TipoNota
 from .forms import CitaForm, EstadoCitaForm, TipoCitaForm, MotivoCitaForm
@@ -344,6 +352,75 @@ def cambiar_estado(request, cita_id, estado_id):
         messages.error(request, f'Error inesperado al cambiar el estado: {str(e)}')
     
     return redirect('citas:show', cita_id=cita_id)
+
+# --- Vistas de Exportación --- #
+
+def exportar_citas_pdf(request):
+    citas = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
+    logo_path = str(BASE_DIR / 'static/img/logo.png')
+    
+    context = {
+        'citas': citas,
+        'logo_path': logo_path,
+        'generation_date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+    }
+
+    template = get_template('citas/pdf_template.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_citas_{}.pdf"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+        return response
+    
+    return HttpResponse("Error al generar el PDF.", status=400)
+
+def exportar_citas_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="listado_citas_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Citas"
+    ws.freeze_panes = 'A2'
+    headers = ['Paciente', 'Tipo de Cita', 'Motivo', 'Fecha', 'Hora Inicio', 'Hora Fin', 'Estado']
+    ws.append(headers)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="0d6efd", end_color="0d6efd", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    citas = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
+    for cita in citas:
+        ws.append([
+            f"{cita.paciente.nombre} {cita.paciente.apellido}",
+            cita.tipo_cita.nombre,
+            cita.motivo.nombre,
+            cita.fecha,
+            cita.hora_inicio,
+            cita.hora_fin,
+            cita.estado.nombre
+        ])
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    wb.save(response)
+    return response
 
 # Vistas AJAX para crear tipos, motivos y estados de cita
 @require_http_methods(["POST"])
