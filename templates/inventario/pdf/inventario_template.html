@@ -48,23 +48,26 @@
         <thead>
             <tr>
                 <th>Medicamento</th>
+                <th>Código</th>
                 <th>Lote</th>
                 <th class="text-center">Cantidad</th>
-                <th class="text-center">Fecha de Vencimiento</th>
                 <th class="text-center">Fecha de Ingreso</th>
+                <th class="text-center">Fecha de Vencimiento</th>
+                <th class="text-center">Estado</th>
             </tr>
         </thead>
         <tbody>
             {% for item in inventario %}
             <tr class="{% if forloop.counter|divisibleby:2 %}row-even{% else %}row-odd{% endif %}">
                 <td>{{ item.medicamento.nombre }}</td>
-                <td>{{ item.numero_lote|default:"N/A" }}</td>
+                <td>{{ item.medicamento.codigo }}</td>
+                <td>{{ item.lote|default:"N/A" }}</td>
                 <td class="text-center">{{ item.cantidad }}</td>
-                <td class="text-center {% if item.esta_vencido %}text-danger{% endif %}">
-                    {{ item.fecha_vencimiento|date:"d/m/Y" }}
-                    {% if item.esta_vencido %}(Vencido){% endif %}
-                </td>
                 <td class="text-center">{{ item.created_at|date:"d/m/Y" }}</td>
+                <td class="text-center {% if item.estado == 'caducado' %}text-danger{% endif %}">
+                    {{ item.fecha_caducidad|date:"d/m/Y" }}
+                </td>
+                <td class="text-center">{{ item.estado|capfirst }}</td>
             </tr>
             {% empty %}
             <tr>

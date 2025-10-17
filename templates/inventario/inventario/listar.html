@@ -9,6 +9,9 @@
         <a href="{% url 'inventario:crear_inventario' %}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Agregar Existencia
         </a>
+        <a href="{% url 'inventario:exportar_inventario_excel' %}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+        </a>
         <a href="{% url 'inventario:exportar_inventario_pdf' %}" class="btn btn-danger">
             <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
         </a>

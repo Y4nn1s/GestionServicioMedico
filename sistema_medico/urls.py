@@ -19,6 +19,30 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from types import MethodType
+
+def has_admin_permission(self, request):
+    """
+    Custom permission check for the admin site.
+    Allows access only to active staff members with the 'admin' role
+    or to superusers.
+    """
+    if not request.user.is_active or not request.user.is_staff:
+        return False
+    
+    # Superusers always have access
+    if request.user.is_superuser:
+        return True
+    
+    # Custom role check for other staff members
+    if hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'admin':
+        return True
+        
+    # Deny access otherwise
+    return False
+
+# Monkey-patch the has_permission method of the default admin site
+admin.site.has_permission = MethodType(has_admin_permission, admin.site)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

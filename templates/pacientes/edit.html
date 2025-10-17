@@ -28,7 +28,6 @@
                                         {{ form.nombre.errors }}
                                     </div>
                                 {% endif %}
-                                <div class="form-text">Máximo 30 caracteres, solo letras y espacios</div>
                             </div>
                         </div>
                         
@@ -43,7 +42,6 @@
                                         {{ form.apellido.errors }}
                                     </div>
                                 {% endif %}
-                                <div class="form-text">Máximo 20 caracteres, solo letras y espacios</div>
                             </div>
                         </div>
                     </div>
@@ -60,7 +58,6 @@
                                         {{ form.numero_documento.errors }}
                                     </div>
                                 {% endif %}
-                                <div class="form-text">8 dígitos exactamente</div>
                             </div>
                         </div>
                         
@@ -189,7 +186,6 @@
                                                     {{ direccion_form.codigo_postal.errors }}
                                                 </div>
                                             {% endif %}
-                                            <div class="form-text">Máximo 4 dígitos</div>
                                         </div>
                                     </div>
                                 </div>
@@ -214,6 +210,9 @@
                                         <div class="mb-2">
                                             <label for="{{ telefono_form.tipo_telefono.id_for_label }}" class="form-label">
                                                 {{ telefono_form.tipo_telefono.label }}
+                                                <button type="button" class="btn btn-sm btn-outline-primary ms-2 btn-crear-tipotelefono" data-bs-toggle="modal" data-bs-target="#crearTipoTelefonoModal" data-form-prefix="{{ telefono_form.prefix }}">
+                                                    <i class="bi bi-plus-circle"></i> Nuevo
+                                                </button>
                                             </label>
                                             {{ telefono_form.tipo_telefono }}
                                             {% if telefono_form.tipo_telefono.errors %}
@@ -235,7 +234,6 @@
                                                     {{ telefono_form.numero.errors }}
                                                 </div>
                                             {% endif %}
-                                            <div class="form-text">Exactamente 11 dígitos</div>
                                         </div>
                                     </div>
                                     
@@ -283,17 +281,39 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para crear Tipo de Teléfono -->
+<div class="modal fade" id="crearTipoTelefonoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-telephone-plus"></i> Crear Nuevo Tipo de Teléfono</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearTipoTelefonoForm">
+                    <div class="mb-3">
+                        <label for="nombre_tipo_telefono" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre_tipo_telefono" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Crear Tipo</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% load static %}
+<script src="{% static 'js/pacientes_modals.js' %}"></script>
 <script>
 $(document).ready(function() {
     // Manejar cambio de país para cargar estados
     $(document).on('change', '.pais-select', function() {
         var paisId = $(this).val();
         var estadoSelect = $(this).closest('.direccion-form').find('.estado-select');
-        var ciudadSelect = $(this).closest('.direccion-form').find('select[id*="ciudad"]');  // Campo ciudad de Django
+        var ciudadSelect = $(this).closest('.direccion-form').find('select[id*="ciudad"]');
         
         if (paisId) {
             $.get("{% url 'pacientes:cargar_estados' %}", {'pais_id': paisId}, function(data) {
@@ -309,7 +329,7 @@ $(document).ready(function() {
     // Manejar cambio de estado para cargar ciudades
     $(document).on('change', '.estado-select', function() {
         var estadoId = $(this).val();
-        var ciudadSelect = $(this).closest('.direccion-form').find('select[id*="ciudad"]');  // Campo ciudad de Django
+        var ciudadSelect = $(this).closest('.direccion-form').find('select[id*="ciudad"]');
         
         if (estadoId) {
             $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': estadoId}, function(data) {
@@ -329,7 +349,6 @@ $(document).ready(function() {
         }
         var formIdx = parseInt(totalFormsInput.val()) || 0;
         
-        // Clonar el último formulario existente
         var lastForm = formset.children('.telefono-form').last();
         if (lastForm.length === 0) {
             return;
@@ -338,7 +357,6 @@ $(document).ready(function() {
         var newForm = lastForm.clone(true);
         newForm.find('input,select,textarea').val('').prop('checked', false);
         
-        // Actualizar nombres e IDs para el nuevo índice
         newForm.find('[name], [id]').each(function() {
             var $el = $(this);
             ['name', 'id'].forEach(function(attr) {
@@ -355,7 +373,6 @@ $(document).ready(function() {
             $(this).attr('for', forVal);
         });
         
-        // Añadir botón de eliminar solo a forms nuevos (índice >= 1)
         if (formIdx >= 1) {
             newForm.append('<button type="button" class="btn btn-sm btn-danger btn-eliminar-telefono position-absolute top-0 end-0 m-2" title="Eliminar este teléfono"><i class="bi bi-x"></i></button>');
         }
@@ -381,12 +398,11 @@ $(document).ready(function() {
         var idx = formset.children('.telefono-form').index(formToRemove);
         
         if (idx < initialForms) {
-            return; // No eliminar forms iniciales
+            return;
         }
         
         formToRemove.remove();
         
-        // Reindexar forms restantes
         formset.children('.telefono-form').each(function(newIdx) {
             $(this).find('[name], [id]').each(function() {
                 var $el = $(this);
@@ -408,33 +424,27 @@ $(document).ready(function() {
     });
     
     // Al cargar la página, disparar el evento change en los selects de país
-    // para que se actualicen los selects de estado y ciudad según la jerarquía
-    // pero también asegurar que los valores guardados se mantengan
     setTimeout(function() {
         $('.direccion-form').each(function() {
             var $form = $(this);
             var paisSelect = $form.find('.pais-select');
             var estadoSelect = $form.find('.estado-select');
-            var ciudadSelect = $form.find('select[id*="ciudad"]');  // Campo ciudad de Django
+            var ciudadSelect = $form.find('select[id*="ciudad"]');
             var selectedPais = paisSelect.val();
             var selectedEstado = estadoSelect.val();
             var selectedCiudad = ciudadSelect.val();
             
             if (selectedPais) {
-                // Cargar estados del país seleccionado
                 $.get("{% url 'pacientes:cargar_estados' %}", {'pais_id': selectedPais}, function(data) {
                     estadoSelect.html(data);
                     
                     if (selectedEstado) {
-                        // Restaurar estado seleccionado
                         estadoSelect.val(selectedEstado);
                         
-                        // Cargar ciudades del estado seleccionado
                         $.get("{% url 'pacientes:cargar_ciudades' %}", {'estado_id': selectedEstado}, function(ciudadData) {
                             ciudadSelect.html(ciudadData);
                             
                             if (selectedCiudad) {
-                                // Restaurar ciudad seleccionada
                                 ciudadSelect.val(selectedCiudad);
                             }
                         });
@@ -443,13 +453,11 @@ $(document).ready(function() {
             }
         });
         
-        // Asegurar que se muestre la fecha de nacimiento correcta
-        // Verificar si hay una fecha de nacimiento guardada para el paciente
         {% if form.instance.fecha_nacimiento %}
             var fechaNacimiento = "{{ form.instance.fecha_nacimiento|date:'Y-m-d' }}";
             $('#id_fecha_nacimiento').val(fechaNacimiento);
         {% endif %}
-    }, 200);  // Pequeño delay para asegurar que los elementos están completamente cargados
+    }, 200);
 });
 </script>
 {% endblock %}

@@ -1,104 +1,86 @@
-from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.contrib import messages
+from functools import wraps
+
+def role_required(allowed_roles=[]):
+    """
+    Decorador para vistas basadas en funciones que comprueba si el usuario tiene uno de los roles permitidos o es un superusuario.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect(reverse_lazy('core:login'))
+
+            # Los superusuarios siempre tienen acceso
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+
+            # Si el perfil del usuario está en los roles permitidos, se ejecuta la vista
+            if hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol in allowed_roles:
+                return view_func(request, *args, **kwargs)
+            else:
+                # Si no tiene el rol, se muestra un mensaje y se redirige
+                messages.error(request, 'No tienes los permisos necesarios para acceder a esta página.')
+                return redirect(reverse_lazy('core:acceso_denegado'))
+        return _wrapped_view
+    return decorator
 
 
-def es_admin(user):
+class RoleRequiredMixin(UserPassesTestMixin):
     """
-    Verifica si el usuario es administrador
+    Mixin para vistas basadas en clases que comprueba si el usuario tiene un rol permitido.
+    Se debe definir `allowed_roles` en la vista que herede de este mixin.
     """
-    return user.is_authenticated and hasattr(user, 'perfilusuario') and user.perfilusuario.rol == 'admin'
+    allowed_roles = []
+    login_url = reverse_lazy('core:login')
+    permission_denied_message = 'No tienes los permisos necesarios para acceder a esta página.'
 
-
-def es_medico(user):
-    """
-    Verifica si el usuario es médico o administrador
-    """
-    return user.is_authenticated and hasattr(user, 'perfilusuario') and (
-        user.perfilusuario.rol == 'medico' or user.perfilusuario.rol == 'admin'
-    )
-
-
-def es_recepcionista(user):
-    """
-    Verifica si el usuario es recepcionista, médico o administrador
-    """
-    return user.is_authenticated and hasattr(user, 'perfilusuario') and (
-        user.perfilusuario.rol in ['recepcionista', 'medico', 'admin']
-    )
-
-
-def admin_required(view_func):
-    """
-    Decorador para vistas que requieren rol de administrador
-    """
-    def _wrapped_view(request, *args, **kwargs):
-        if es_admin(request.user):
-            return view_func(request, *args, **kwargs)
-        else:
-            messages.error(request, 'No tienes permiso para acceder a esta página.')
-            return redirect('core:dashboard')
-    return _wrapped_view
-
-
-def medico_required(view_func):
-    """
-    Decorador para vistas que requieren rol de médico o superior
-    """
-    def _wrapped_view(request, *args, **kwargs):
-        if es_medico(request.user):
-            return view_func(request, *args, **kwargs)
-        else:
-            messages.error(request, 'No tienes permiso para acceder a esta página.')
-            return redirect('core:dashboard')
-    return _wrapped_view
-
-
-def recepcionista_required(view_func):
-    """
-    Decorador para vistas que requieren rol de recepcionista o superior
-    """
-    def _wrapped_view(request, *args, **kwargs):
-        if es_recepcionista(request.user):
-            return view_func(request, *args, **kwargs)
-        else:
-            messages.error(request, 'No tienes permiso para acceder a esta página.')
-            return redirect('core:dashboard')
-    return _wrapped_view
-
-
-class AdminRequiredMixin(UserPassesTestMixin):
-    """
-    Mixin para vistas basadas en clases que requieren rol de administrador
-    """
     def test_func(self):
-        return es_admin(self.request.user)
-    
+        """Comprueba si el rol del usuario está en la lista de roles permitidos o si es superusuario."""
+        if not self.request.user.is_authenticated:
+            return False
+        
+        # Los superusuarios siempre tienen acceso
+        if self.request.user.is_superuser:
+            return True
+            
+        if hasattr(self.request.user, 'perfilusuario'):
+            return self.request.user.perfilusuario.rol in self.allowed_roles
+        return False
+
     def handle_no_permission(self):
-        messages.error(self.request, 'No tienes permiso para acceder a esta página.')
-        return redirect('core:dashboard')
+        """
+        Redirige al usuario a la página de acceso denegado si no tiene permiso.
+        """
+        messages.error(self.request, self.permission_denied_message)
+        return redirect(reverse_lazy('core:acceso_denegado'))
 
 
-class MedicoRequiredMixin(UserPassesTestMixin):
-    """
-    Mixin para vistas basadas en clases que requieren rol de médico o superior
-    """
-    def test_func(self):
-        return es_medico(self.request.user)
-    
-    def handle_no_permission(self):
-        messages.error(self.request, 'No tienes permiso para acceder a esta página.')
-        return redirect('core:dashboard')
+# --- Mixins específicos para cada rol ---
+
+class AdminRequiredMixin(RoleRequiredMixin):
+    """Acceso solo para administradores."""
+    allowed_roles = ['admin']
+
+class MedicoRequiredMixin(RoleRequiredMixin):
+    """Acceso para médicos y administradores."""
+    allowed_roles = ['admin', 'medico']
+
+class RecepcionistaRequiredMixin(RoleRequiredMixin):
+    """Acceso para recepcionistas y administradores."""
+    allowed_roles = ['admin', 'recepcionista']
+
+class PersonalMedicoRequiredMixin(RoleRequiredMixin):
+    """Acceso para médicos, recepcionistas y administradores."""
+    allowed_roles = ['admin', 'medico', 'recepcionista']
 
 
-class RecepcionistaRequiredMixin(UserPassesTestMixin):
-    """
-    Mixin para vistas basadas en clases que requieren rol de recepcionista o superior
-    """
-    def test_func(self):
-        return es_recepcionista(self.request.user)
-    
-    def handle_no_permission(self):
-        messages.error(self.request, 'No tienes permiso para acceder a esta página.')
-        return redirect('core:dashboard')
+# --- Decoradores específicos para cada rol ---
+
+admin_required = role_required(allowed_roles=['admin'])
+medico_required = role_required(allowed_roles=['admin', 'medico'])
+recepcionista_required = role_required(allowed_roles=['admin', 'recepcionista'])
+personal_medico_required = role_required(allowed_roles=['admin', 'medico', 'recepcionista'])

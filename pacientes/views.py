@@ -3,21 +3,28 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from io import BytesIO
 import datetime
+import json
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+
 from .models import Paciente, Pais, Estado, Ciudad, Direccion, Telefono
-from .forms import PacienteForm, DireccionFormSet, TelefonoFormSet
+from .forms import PacienteForm, DireccionFormSet, TelefonoFormSet, TipoTelefonoForm
 from sistema_medico.settings import BASE_DIR
+from core.decorators import personal_medico_required
 
 # --- Vistas CRUD y de Búsqueda --- #
 
+@personal_medico_required
 def index(request):
     pacientes_list = Paciente.objects.all().order_by('apellido', 'nombre')
     paginator = Paginator(pacientes_list, 10)
@@ -25,6 +32,7 @@ def index(request):
     pacientes = paginator.get_page(page_number)
     return render(request, 'pacientes/index.html', {'pacientes': pacientes})
 
+@personal_medico_required
 @transaction.atomic
 def create(request):
     if request.method == 'POST':
@@ -53,6 +61,7 @@ def create(request):
         'paises': paises,
     })
 
+@personal_medico_required
 def show(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
     direcciones = Direccion.objects.filter(paciente=paciente).select_related('ciudad__estado__pais')
@@ -63,6 +72,7 @@ def show(request, paciente_id):
         'telefonos': telefonos
     })
 
+@personal_medico_required
 @transaction.atomic
 def edit(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
@@ -89,6 +99,7 @@ def edit(request, paciente_id):
         'paises': paises,
     })
 
+@personal_medico_required
 @transaction.atomic
 def destroy(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
@@ -99,6 +110,7 @@ def destroy(request, paciente_id):
         return redirect('pacientes:index')
     return render(request, 'pacientes/destroy.html', {'paciente': paciente})
 
+@personal_medico_required
 def search(request):
     query = request.GET.get('q', '')
     pacientes = Paciente.objects.all().order_by('apellido', 'nombre')
@@ -111,18 +123,46 @@ def search(request):
 
 # --- Vistas AJAX --- #
 
+@login_required
 def cargar_estados(request):
     pais_id = request.GET.get('pais_id')
     estados = Estado.objects.filter(pais_id=pais_id).order_by('nombre')
     return render(request, 'pacientes/dropdown_list_options.html', {'opciones': estados})
 
+@login_required
 def cargar_ciudades(request):
     estado_id = request.GET.get('estado_id')
     ciudades = Ciudad.objects.filter(estado_id=estado_id).order_by('nombre')
     return render(request, 'pacientes/dropdown_list_options.html', {'opciones': ciudades})
 
+@login_required
+@require_http_methods(["POST"])
+@csrf_exempt
+def crear_tipo_telefono_ajax(request):
+    try:
+        data = json.loads(request.body)
+        form = TipoTelefonoForm(data)
+        if form.is_valid():
+            tipo_telefono = form.save()
+            return JsonResponse({
+                'success': True,
+                'id': tipo_telefono.id,
+                'nombre': tipo_telefono.nombre
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
 # --- Vistas de Exportación --- #
 
+@personal_medico_required
 def exportar_pacientes_pdf(request):
     pacientes = Paciente.objects.all().select_related('direccion__ciudad__estado__pais').prefetch_related('telefonos__tipo_telefono').order_by('apellido', 'nombre')
     logo_path = str(BASE_DIR / 'static/img/logo.png')
@@ -145,6 +185,7 @@ def exportar_pacientes_pdf(request):
     
     return HttpResponse("Error al generar el PDF.", status=400)
 
+@personal_medico_required
 def exportar_pacientes_excel(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="listado_pacientes_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))

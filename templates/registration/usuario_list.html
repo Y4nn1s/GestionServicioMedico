@@ -57,6 +57,22 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
+                                                    <a class="dropdown-item" href="{% url 'core:editar_usuario' usuario.pk %}">
+                                                        <i class="bi bi-pencil-square me-1"></i> Editar Usuario
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'core:cambiar_contrasena' usuario.pk %}">
+                                                        <i class="bi bi-key me-1"></i> Cambiar Contraseña
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="{% url 'core:eliminar_usuario' usuario.pk %}">
+                                                        <i class="bi bi-trash me-1"></i> Eliminar
+                                                    </a>
+                                                </li>
+                                                <li>
                                                     <a class="dropdown-item" href="{% url 'core:cambiar_rol' usuario.id %}">
                                                         <i class="bi bi-person-bounding-box me-1"></i> Cambiar Rol
                                                     </a>
