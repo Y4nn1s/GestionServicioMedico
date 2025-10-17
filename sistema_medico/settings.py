@@ -159,4 +159,4 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Alcides Mata, Yannis Iturriago
+# Alcides Mata, Yannis Iturriago 15-10-2025
