@@ -207,9 +207,17 @@ body.medical-body {
 }
 
 .footer-unearte h5 {
-    color: #b9bbbe; /* Gris claro */
-    margin-bottom: 1rem;
+    color: #ffffff;
+    margin-bottom: 1.25rem;
     font-weight: 600;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--medical-secondary);
+    display: inline-block;
+}
+
+#footer-main-title {
+    font-size: 1rem; /* Reducir tamaño del título principal */
+    margin-bottom: 0.25rem !important;
 }
 
 .footer-unearte a {
@@ -219,6 +227,17 @@ body.medical-body {
 
 .footer-unearte a:hover {
     color: white;
+}
+
+.footer-link {
+    color: #b9bbbe;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.footer-link:hover {
+    color: #ffffff;
+    text-decoration: underline;
 }
 
 .footer-unearte p,

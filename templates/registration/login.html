@@ -1,27 +1,19 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}Iniciar Sesión{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-5 col-lg-4">
-            <div class="card card-medical">
+        <div class="col-md-6 col-lg-5 col-xl-4">
+            <div class="card card-medical shadow-lg">
                 <div class="card-header-medical text-white text-center">
-                    <h3 class="card-title mb-0">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
-                    </h3>
+                    <img src="{% static 'img/logo.png' %}" alt="Logo" class="my-2" style="width: 60px; height: 60px; border-radius: 50%;">
+                    <h3 class="card-title mb-0">Control y Gestión del Servicio Médico</h3>
+                    <p class="mb-2">UNEARTE</p>
                 </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
+                <div class="card-body p-4">
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger">
                             {% for error in form.non_field_errors %}
@@ -30,67 +22,44 @@
                         </div>
                     {% endif %}
                     
-                    <form method="post">
+                    <form method="post" novalidate>
                         {% csrf_token %}
                         
                         <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">
-                                <i class="bi bi-person me-1"></i>Nombre de Usuario
-                            </label>
-                            <div class="d-flex justify-content-center">
-                                <div class="input-group" style="width: 100%; max-width: 280px;">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-person"></i>
-                                    </span>
-                                    {{ form.username }}
-                                </div>
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Usuario</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                                {{ form.username }}
                             </div>
                             {% if form.username.errors %}
-                                {% for error in form.username.errors %}
-                                    <div class="text-danger mt-1" style="margin-left: auto; margin-right: auto; width: fit-content; max-width: 280px;">
-                                        <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
-                                    </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="form-text mt-1" style="margin-left: auto; margin-right: auto; width: fit-content; max-width: 280px;">Ingresa tu nombre de usuario</div>
+                                <div class="text-danger small mt-1">{{ form.username.errors|striptags }}</div>
                             {% endif %}
                         </div>
                         
-                        <div class="mb-4">
-                            <label for="{{ form.password.id_for_label }}" class="form-label fw-bold">
-                                <i class="bi bi-key me-1"></i>Contraseña
-                            </label>
-                            <div class="d-flex justify-content-center">
-                                <div class="input-group" style="width: 100%; max-width: 280px;">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-key"></i>
-                                    </span>
-                                    {{ form.password }}
-                                </div>
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                                {{ form.password }}
                             </div>
                             {% if form.password.errors %}
-                                {% for error in form.password.errors %}
-                                    <div class="text-danger mt-1" style="margin-left: auto; margin-right: auto; width: fit-content; max-width: 280px;">
-                                        <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
-                                    </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="form-text mt-1" style="margin-left: auto; margin-right: auto; width: fit-content; max-width: 280px;">Ingresa tu contraseña</div>
+                                <div class="text-danger small mt-1">{{ form.password.errors|striptags }}</div>
                             {% endif %}
                         </div>
                         
-                        <div class="d-grid mb-3">
+                        <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-medical-primary btn-lg">
-                                <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Iniciar Sesión
                             </button>
                         </div>
                         
-                        <div class="text-center">
-                            <a href="{% url 'core:dashboard' %}" class="btn btn-outline-medical">
-                                <i class="bi bi-arrow-left me-1"></i> Volver al Inicio
-                            </a>
+                        <div class="text-center mt-3">
+                            <a href="javascript:void(0);" onclick="alert('Por favor, contacta con un administrador para que te asigne una nueva contraseña.')" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
                         </div>
                     </form>
+                </div>
+                <div class="card-footer text-center">
+                    ¿No tienes una cuenta? <a href="{% url 'core:signup' %}">Regístrate</a>
                 </div>
             </div>
         </div>
