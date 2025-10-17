@@ -78,6 +78,7 @@ def index(request):
         'citas_canceladas': citas_canceladas,
         'hoy': hoy,
         'query': query,
+        'estados_cita': EstadoCita.objects.all() # Añadir todos los estados para el modal
     }
     
     return render(request, 'citas/index.html', context)
@@ -208,6 +209,46 @@ def crear_estado_cita_ajax(request):
             'success': False,
             'error': str(e)
         })
+
+@login_required
+@require_http_methods(["POST"])
+@csrf_exempt
+@transaction.atomic
+def cambiar_estado_ajax(request):
+    try:
+        data = json.loads(request.body)
+        cita_id = data.get('cita_id')
+        estado_id = data.get('estado_id')
+
+        cita = get_object_or_404(Cita, id=cita_id)
+        nuevo_estado = get_object_or_404(EstadoCita, id=estado_id)
+        
+        estado_anterior = cita.estado
+
+        if estado_anterior.id == nuevo_estado.id:
+            return JsonResponse({'success': True, 'message': 'El estado ya es el actual.'})
+
+        cita.estado = nuevo_estado
+        cita.save()
+
+        tipo_nota, _ = TipoNota.objects.get_or_create(
+            nombre='Sistema', 
+            defaults={'descripcion': 'Notas generadas automáticamente por el sistema'}
+        )
+        NotaCita.objects.create(
+            cita=cita,
+            tipo_nota=tipo_nota,
+            contenido=f"Estado cambiado de '{estado_anterior.nombre}' a '{nuevo_estado.nombre}' por {request.user.username}."
+        )
+
+        return JsonResponse({
+            'success': True,
+            'nuevo_estado_nombre': nuevo_estado.nombre,
+            'nuevo_estado_color': nuevo_estado.color
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 @personal_medico_required
 def show(request, cita_id):
@@ -438,79 +479,3 @@ def exportar_citas_excel(request):
         ws.column_dimensions[column].width = adjusted_width
     wb.save(response)
     return response
-
-# Vistas AJAX para crear tipos, motivos y estados de cita
-@login_required
-@require_http_methods(["POST"])
-@csrf_exempt
-def crear_tipo_cita_ajax(request):
-    try:
-        data = json.loads(request.body)
-        form = TipoCitaForm(data)
-        if form.is_valid():
-            tipo = form.save()
-            return JsonResponse({
-                'success': True,
-                'id': tipo.id,
-                'nombre': tipo.nombre
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'errors': form.errors
-            })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
-
-@login_required
-@require_http_methods(["POST"])
-@csrf_exempt
-def crear_motivo_cita_ajax(request):
-    try:
-        data = json.loads(request.body)
-        form = MotivoCitaForm(data)
-        if form.is_valid():
-            motivo = form.save()
-            return JsonResponse({
-                'success': True,
-                'id': motivo.id,
-                'nombre': motivo.nombre
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'errors': form.errors
-            })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
-
-@login_required
-@require_http_methods(["POST"])
-@csrf_exempt
-def crear_estado_cita_ajax(request):
-    try:
-        data = json.loads(request.body)
-        form = EstadoCitaForm(data)
-        if form.is_valid():
-            estado = form.save()
-            return JsonResponse({
-                'success': True,
-                'id': estado.id,
-                'nombre': estado.nombre
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'errors': form.errors
-            })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
