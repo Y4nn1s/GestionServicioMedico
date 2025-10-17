@@ -128,7 +128,10 @@ def search_all(request):
     return render(request, 'core/search_results.html', context)
 
 
+from .forms import LoginForm
+
 class CustomLoginView(LoginView):
+    form_class = LoginForm
     template_name = 'registration/login.html'
     redirect_authenticated_user = True
     
