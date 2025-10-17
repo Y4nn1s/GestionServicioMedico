@@ -105,10 +105,10 @@ def search_all(request):
         
         results['historiales'] = HistorialMedico.objects.filter(
             Q(paciente_id__in=paciente_ids_historial) |
-            Q(alergias__icontains=query) |
-            Q(enfermedades_preexistentes__icontains=query) |
-            Q(medicamentos_actuales__icontains=query)
-        ).select_related('paciente')
+            Q(alergias__nombre__icontains=query) |
+            Q(enfermedades_preexistentes__nombre__icontains=query) |
+            Q(medicamentos_actuales__nombre__icontains=query)
+        ).select_related('paciente').distinct()
     
     # Limitar resultados para evitar páginas muy largas
     results['pacientes'] = results['pacientes'][:10]
