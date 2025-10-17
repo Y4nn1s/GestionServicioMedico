@@ -122,35 +122,19 @@
                                     <div class="col-md-4">
                                         <div class="mb-2">
                                             <label class="form-label">País</label>
-                                            <select class="form-control mb-2 pais-select">
-                                                <option value="">Seleccione un país</option>
-                                                {% for pais in paises %}
-                                                    <option value="{{ pais.id }}" {% if pais.nombre == 'Venezuela' %}selected{% endif %}>{{ pais.nombre }}</option>
-                                                {% endfor %}
-                                            </select>
+                                            <input type="text" class="form-control" value="Venezuela" disabled readonly>
                                         </div>
                                     </div>
-                                    
                                     <div class="col-md-4">
                                         <div class="mb-2">
                                             <label class="form-label">Estado</label>
-                                            <select class="form-control mb-2 estado-select">
-                                                <option value="">Seleccione un estado</option>
-                                            </select>
+                                            <input type="text" class="form-control" value="Distrito Capital" disabled readonly>
                                         </div>
                                     </div>
-                                    
                                     <div class="col-md-4">
                                         <div class="mb-2">
-                                            <label for="{{ direccion_form.ciudad.id_for_label }}" class="form-label">
-                                                {{ direccion_form.ciudad.label }}
-                                            </label>
-                                            {{ direccion_form.ciudad }}
-                                            {% if direccion_form.ciudad.errors %}
-                                                <div class="text-danger">
-                                                    {{ direccion_form.ciudad.errors }}
-                                                </div>
-                                            {% endif %}
+                                            <label class="form-label">Ciudad</label>
+                                            <input type="text" class="form-control" value="Caracas" disabled readonly>
                                         </div>
                                     </div>
                                 </div>

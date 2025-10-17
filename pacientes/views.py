@@ -41,6 +41,17 @@ def create(request):
         telefono_formset = TelefonoFormSet(request.POST)
         if paciente_form.is_valid() and direccion_formset.is_valid() and telefono_formset.is_valid():
             paciente = paciente_form.save()
+            
+            # Asignar Caracas como ciudad fija
+            try:
+                caracas_city = Ciudad.objects.get(nombre="Caracas", estado__nombre="Distrito Capital")
+                for form in direccion_formset:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        form.instance.ciudad = caracas_city
+            except Ciudad.DoesNotExist:
+                messages.error(request, "La ciudad de Caracas no está configurada en el sistema. Por favor, contacte al administrador.")
+                return redirect('pacientes:index')
+
             direccion_formset.instance = paciente
             direccion_formset.save()
             telefono_formset.instance = paciente
@@ -82,6 +93,17 @@ def edit(request, paciente_id):
         telefono_formset = TelefonoFormSet(request.POST, instance=paciente)
         if paciente_form.is_valid() and direccion_formset.is_valid() and telefono_formset.is_valid():
             paciente_form.save()
+            
+            # Asignar Caracas como ciudad fija
+            try:
+                caracas_city = Ciudad.objects.get(nombre="Caracas", estado__nombre="Distrito Capital")
+                for form in direccion_formset:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        form.instance.ciudad = caracas_city
+            except Ciudad.DoesNotExist:
+                messages.error(request, "La ciudad de Caracas no está configurada en el sistema. Por favor, contacte al administrador.")
+                return redirect('pacientes:index')
+
             direccion_formset.save()
             telefono_formset.save()
             messages.success(request, 'Paciente actualizado correctamente.')
