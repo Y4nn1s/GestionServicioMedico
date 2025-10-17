@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-5 col-lg-4">
             <div class="card card-medical">
                 <div class="card-header-medical text-white text-center">
                     <h3 class="card-title mb-0">
@@ -15,7 +15,7 @@
                 <div class="card-body">
                     {% if messages %}
                         {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show text-center" role="alert">
                                 {{ message }}
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
@@ -23,7 +23,7 @@
                     {% endif %}
                     
                     {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
+                        <div class="alert alert-danger text-center">
                             {% for error in form.non_field_errors %}
                                 {{ error }}
                             {% endfor %}
@@ -33,15 +33,17 @@
                     <form method="post">
                         {% csrf_token %}
                         
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">
+                        <div class="mb-3 text-center">
+                            <label for="{{ form.username.id_for_label }}" class="form-label fw-bold d-block">
                                 <i class="bi bi-person me-1"></i>Nombre de Usuario
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-person"></i>
-                                </span>
-                                {{ form.username }}
+                            <div class="d-flex justify-content-center">
+                                <div class="input-group" style="width: 100%; max-width: 280px;">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-person"></i>
+                                    </span>
+                                    {{ form.username }}
+                                </div>
                             </div>
                             {% if form.username.errors %}
                                 {% for error in form.username.errors %}
@@ -50,19 +52,21 @@
                                     </div>
                                 {% endfor %}
                             {% else %}
-                                <div class="form-text mt-1">Ingresa tu nombre de usuario registrado</div>
+                                <div class="form-text mt-1">Ingresa tu nombre de usuario</div>
                             {% endif %}
                         </div>
                         
-                        <div class="mb-4">
-                            <label for="{{ form.password.id_for_label }}" class="form-label fw-bold">
+                        <div class="mb-4 text-center">
+                            <label for="{{ form.password.id_for_label }}" class="form-label fw-bold d-block">
                                 <i class="bi bi-key me-1"></i>Contraseña
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-key"></i>
-                                </span>
-                                {{ form.password }}
+                            <div class="d-flex justify-content-center">
+                                <div class="input-group" style="width: 100%; max-width: 280px;">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-key"></i>
+                                    </span>
+                                    {{ form.password }}
+                                </div>
                             </div>
                             {% if form.password.errors %}
                                 {% for error in form.password.errors %}
@@ -71,7 +75,7 @@
                                     </div>
                                 {% endfor %}
                             {% else %}
-                                <div class="form-text mt-1">Ingresa tu contraseña segura</div>
+                                <div class="form-text mt-1">Ingresa tu contraseña</div>
                             {% endif %}
                         </div>
                         
