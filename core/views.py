@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, CreateView, ListView
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.models import User, Group
@@ -50,6 +50,14 @@ class ContactView(TemplateView):
     template_name = 'core/contact.html'
 
 
+class AccesoDenegadoView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/acceso_denegado.html'
+
+
+class PerfilView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/perfil.html'
+
+
 def handler404(request, exception):
     return render(request, 'core/404.html', status=404)
 
@@ -58,6 +66,7 @@ def handler500(request):
     return render(request, 'core/500.html', status=500)
 
 
+@login_required
 def search_all(request):
     query = request.GET.get('q', '')
     results = {
@@ -194,70 +203,134 @@ class SignUpView(CreateView):
         return context
 
 
-class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
-    model = User
+from .decorators import AdminRequiredMixin, admin_required
+from .forms import AdminUserCreationForm, AdminUserChangeForm
+from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
+from django.contrib.auth.forms import SetPasswordForm
+
+
+class UsuarioCreateView(AdminRequiredMixin, CreateView):
+    form_class = AdminUserCreationForm
     template_name = 'registration/usuario_form.html'
-    fields = ['username', 'first_name', 'last_name', 'email', 'is_active']
     success_url = reverse_lazy('core:lista_usuarios')
-    
-    def test_func(self):
-        return self.request.user.perfilusuario.rol == 'admin'
-    
+
     def form_valid(self, form):
         response = super().form_valid(form)
-        # Asignar rol desde el formulario o establecer por defecto
-        rol = self.request.POST.get('rol', 'recepcionista')
+        rol = form.cleaned_data.get('rol')
         
-        # Actualizar el rol en el perfil existente
         perfil = self.object.perfilusuario
         perfil.rol = rol
         perfil.save()
         
-        # Agregar al grupo correspondiente
         grupo_nombre = rol.capitalize() if rol != 'recepcionista' else 'Recepcionista'
         grupo, created = Group.objects.get_or_create(name=grupo_nombre)
+        
+        self.object.groups.clear()
         self.object.groups.add(grupo)
         
         messages.success(self.request, f'Usuario {self.object.username} creado exitosamente.')
         return response
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['roles'] = PerfilUsuario.ROL_OPCIONES
+        context['titulo'] = 'Crear Nuevo Usuario'
         return context
 
 
-class UsuarioListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+class UsuarioUpdateView(AdminRequiredMixin, UpdateView):
+    model = User
+    form_class = AdminUserChangeForm
+    template_name = 'registration/usuario_form.html'
+    success_url = reverse_lazy('core:lista_usuarios')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        rol = form.cleaned_data.get('rol')
+        
+        perfil = self.object.perfilusuario
+        perfil.rol = rol
+        perfil.save()
+        
+        grupo_nombre = rol.capitalize() if rol != 'recepcionista' else 'Recepcionista'
+        grupo, created = Group.objects.get_or_create(name=grupo_nombre)
+        
+        self.object.groups.clear()
+        self.object.groups.add(grupo)
+        
+        messages.success(self.request, f'Usuario {self.object.username} actualizado exitosamente.')
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = f'Editar Usuario: {self.object.username}'
+        return context
+
+
+class UsuarioDeleteView(AdminRequiredMixin, DeleteView):
+    model = User
+    template_name = 'registration/usuario_confirm_delete.html'
+    success_url = reverse_lazy('core:lista_usuarios')
+    context_object_name = 'usuario'
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(pk=self.request.user.pk)
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Usuario {self.object.username} eliminado exitosamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = f'Eliminar Usuario: {self.object.username}'
+        return context
+
+
+class UsuarioSetPasswordView(AdminRequiredMixin, FormView):
+    form_class = SetPasswordForm
+    template_name = 'registration/usuario_set_password.html'
+    success_url = reverse_lazy('core:lista_usuarios')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.get_user()
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        messages.success(self.request, f"La contraseña para el usuario {self.get_user().username} ha sido cambiada exitosamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = f'Cambiar Contraseña para {self.get_user().username}'
+        context['usuario_a_editar'] = self.get_user()
+        return context
+
+    def get_user(self):
+        return get_object_or_404(User, pk=self.kwargs['pk'])
+
+
+class UsuarioListView(AdminRequiredMixin, ListView):
     model = User
     template_name = 'registration/usuario_list.html'
     context_object_name = 'usuarios'
-    
-    def test_func(self):
-        return self.request.user.perfilusuario.rol == 'admin'
     
     def get_queryset(self):
         return User.objects.select_related('perfilusuario').all()
 
 
-@login_required
+@admin_required
 def cambiar_rol(request, user_id):
-    if request.user.perfilusuario.rol != 'admin':
-        messages.error(request, 'No tienes permiso para realizar esta acción.')
-        return redirect('core:dashboard')
-    
-    usuario = User.objects.get(id=user_id)
+    usuario = get_object_or_404(User, id=user_id)
     
     if request.method == 'POST':
         nuevo_rol = request.POST.get('rol')
-        if nuevo_rol in ['admin', 'medico', 'recepcionista']:
+        if nuevo_rol in [rol[0] for rol in PerfilUsuario.ROL_OPCIONES]:
             perfil_usuario = usuario.perfilusuario
             perfil_usuario.rol = nuevo_rol
             perfil_usuario.save()
             
-            # Limpiar grupos anteriores
             usuario.groups.clear()
-            
-            # Agregar al grupo correspondiente
             grupo_nombre = nuevo_rol.capitalize() if nuevo_rol != 'recepcionista' else 'Recepcionista'
             grupo, created = Group.objects.get_or_create(name=grupo_nombre)
             usuario.groups.add(grupo)

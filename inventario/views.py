@@ -14,10 +14,13 @@ import json
 
 from django.contrib.auth.decorators import login_required
 
+from core.decorators import personal_medico_required
+
 from .models import Categoria, Proveedor, Medicamento, Inventario, MovimientoInventario
-from .forms import CategoriaForm, ProveedorForm, MedicamentoForm, InventarioForm, MedicamentoModalForm, CategoriaModalForm, ProveedorModalForm
+from .forms import CategoriaForm, ProveedorForm, MedicamentoForm, InventarioForm, MedicamentoModalForm, CategoriaModalForm, ProveedorModalForm, MovimientoSalidaForm
 
 # Vistas para Categorías
+@personal_medico_required
 def listar_categorias(request):
     categorias_list = Categoria.objects.all().order_by('nombre')
     paginator = Paginator(categorias_list, 10)
@@ -25,6 +28,7 @@ def listar_categorias(request):
     categorias = paginator.get_page(page_number)
     return render(request, 'inventario/categorias/listar.html', {'categorias': categorias})
 
+@personal_medico_required
 def crear_categoria(request):
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
@@ -36,6 +40,7 @@ def crear_categoria(request):
         form = CategoriaForm()
     return render(request, 'inventario/categorias/formulario.html', {'form': form, 'titulo': 'Crear Categoría'})
 
+@personal_medico_required
 def editar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     if request.method == 'POST':
@@ -48,6 +53,7 @@ def editar_categoria(request, categoria_id):
         form = CategoriaForm(instance=categoria)
     return render(request, 'inventario/categorias/formulario.html', {'form': form, 'titulo': 'Editar Categoría'})
 
+@personal_medico_required
 def eliminar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     if request.method == 'POST':
@@ -57,6 +63,7 @@ def eliminar_categoria(request, categoria_id):
     return render(request, 'inventario/categorias/eliminar.html', {'categoria': categoria})
 
 # Vistas para Proveedores
+@personal_medico_required
 def listar_proveedores(request):
     proveedores_list = Proveedor.objects.all().order_by('nombre')
     paginator = Paginator(proveedores_list, 10)
@@ -64,6 +71,7 @@ def listar_proveedores(request):
     proveedores = paginator.get_page(page_number)
     return render(request, 'inventario/proveedores/listar.html', {'proveedores': proveedores})
 
+@personal_medico_required
 def crear_proveedor(request):
     if request.method == 'POST':
         form = ProveedorForm(request.POST)
@@ -75,6 +83,7 @@ def crear_proveedor(request):
         form = ProveedorForm()
     return render(request, 'inventario/proveedores/formulario.html', {'form': form, 'titulo': 'Crear Proveedor'})
 
+@personal_medico_required
 def editar_proveedor(request, proveedor_id):
     proveedor = get_object_or_404(Proveedor, id=proveedor_id)
     if request.method == 'POST':
@@ -87,6 +96,7 @@ def editar_proveedor(request, proveedor_id):
         form = ProveedorForm(instance=proveedor)
     return render(request, 'inventario/proveedores/formulario.html', {'form': form, 'titulo': 'Editar Proveedor'})
 
+@personal_medico_required
 def eliminar_proveedor(request, proveedor_id):
     proveedor = get_object_or_404(Proveedor, id=proveedor_id)
     if request.method == 'POST':
@@ -96,6 +106,7 @@ def eliminar_proveedor(request, proveedor_id):
     return render(request, 'inventario/proveedores/eliminar.html', {'proveedor': proveedor})
 
 # Vistas para Medicamentos
+@personal_medico_required
 def listar_medicamentos(request):
     medicamentos_list = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
     paginator = Paginator(medicamentos_list, 10)
@@ -103,6 +114,7 @@ def listar_medicamentos(request):
     medicamentos = paginator.get_page(page_number)
     return render(request, 'inventario/medicamentos/listar.html', {'medicamentos': medicamentos})
 
+@personal_medico_required
 def crear_medicamento(request):
     if request.method == 'POST':
         form = MedicamentoForm(request.POST)
@@ -115,6 +127,7 @@ def crear_medicamento(request):
         form = MedicamentoForm()
     return render(request, 'inventario/medicamentos/formulario.html', {'form': form, 'titulo': 'Crear Medicamento'})
 
+@personal_medico_required
 def editar_medicamento(request, medicamento_id):
     medicamento = get_object_or_404(Medicamento, id=medicamento_id)
     if request.method == 'POST':
@@ -127,6 +140,7 @@ def editar_medicamento(request, medicamento_id):
         form = MedicamentoForm(instance=medicamento)
     return render(request, 'inventario/medicamentos/formulario.html', {'form': form, 'titulo': 'Editar Medicamento'})
 
+@personal_medico_required
 def eliminar_medicamento(request, medicamento_id):
     medicamento = get_object_or_404(Medicamento, id=medicamento_id)
     if request.method == 'POST':
@@ -136,6 +150,7 @@ def eliminar_medicamento(request, medicamento_id):
     return render(request, 'inventario/medicamentos/eliminar.html', {'medicamento': medicamento})
 
 # Vistas para Inventario
+@personal_medico_required
 def listar_inventario(request):
     inventario_list = Inventario.objects.select_related('medicamento').all().order_by('-created_at')
     paginator = Paginator(inventario_list, 10)
@@ -146,7 +161,7 @@ def listar_inventario(request):
         'today': timezone.now().date()
     })
 
-@login_required
+@personal_medico_required
 def crear_inventario(request):
     if request.method == 'POST':
         form = InventarioForm(request.POST)
@@ -169,6 +184,7 @@ def crear_inventario(request):
         form = InventarioForm()
     return render(request, 'inventario/inventario/formulario.html', {'form': form, 'titulo': 'Agregar Existencia'})
 
+@personal_medico_required
 def editar_inventario(request, inventario_id):
     inventario = get_object_or_404(Inventario, id=inventario_id)
     if request.method == 'POST':
@@ -181,6 +197,7 @@ def editar_inventario(request, inventario_id):
         form = InventarioForm(instance=inventario)
     return render(request, 'inventario/inventario/formulario.html', {'form': form, 'titulo': 'Editar Existencia'})
 
+@personal_medico_required
 def eliminar_inventario(request, inventario_id):
     inventario = get_object_or_404(Inventario, id=inventario_id)
     if request.method == 'POST':
@@ -190,6 +207,7 @@ def eliminar_inventario(request, inventario_id):
     return render(request, 'inventario/inventario/eliminar.html', {'inventario': inventario})
 
 # Vista para mostrar stock total por medicamento
+@personal_medico_required
 def stock_medicamentos(request):
     medicamentos_list = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
     for medicamento in medicamentos_list:
@@ -202,8 +220,12 @@ def stock_medicamentos(request):
     
     return render(request, 'inventario/stock_medicamentos.html', {'medicamentos': medicamentos})
 
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+
 # --- Vistas de Exportación --- #
 
+@personal_medico_required
 def exportar_stock_pdf(request):
     medicamentos = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
     logo_path = str(BASE_DIR / 'static/img/logo.png')
@@ -226,6 +248,7 @@ def exportar_stock_pdf(request):
     
     return HttpResponse("Error al generar el PDF.", status=400)
 
+@personal_medico_required
 def exportar_medicamentos_pdf(request):
     medicamentos = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
     logo_path = str(BASE_DIR / 'static/img/logo.png')
@@ -248,6 +271,7 @@ def exportar_medicamentos_pdf(request):
     
     return HttpResponse("Error al generar el PDF.", status=400)
 
+@personal_medico_required
 def exportar_proveedores_pdf(request):
     proveedores = Proveedor.objects.all().order_by('nombre')
     logo_path = str(BASE_DIR / 'static/img/logo.png')
@@ -270,6 +294,7 @@ def exportar_proveedores_pdf(request):
     
     return HttpResponse("Error al generar el PDF.", status=400)
 
+@personal_medico_required
 def exportar_categorias_pdf(request):
     categorias = Categoria.objects.all().order_by('nombre')
     logo_path = str(BASE_DIR / 'static/img/logo.png')
@@ -292,6 +317,7 @@ def exportar_categorias_pdf(request):
     
     return HttpResponse("Error al generar el PDF.", status=400)
 
+@personal_medico_required
 def exportar_inventario_pdf(request):
     inventario = Inventario.objects.select_related('medicamento').all().order_by('-created_at')
     logo_path = str(BASE_DIR / 'static/img/logo.png')
@@ -314,8 +340,187 @@ def exportar_inventario_pdf(request):
     
     return HttpResponse("Error al generar el PDF.", status=400)
 
+@personal_medico_required
+def exportar_stock_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="reporte_stock_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Stock de Medicamentos"
+    ws.freeze_panes = 'A2'
+    headers = ['Código', 'Medicamento', 'Categoría', 'Stock Actual', 'Stock Mínimo', 'Estado']
+    ws.append(headers)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="198754", end_color="198754", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    medicamentos = Medicamento.objects.all().order_by('nombre')
+    for med in medicamentos:
+        ws.append([med.codigo, med.nombre, med.categoria.nombre, med.stock_actual, med.stock_minimo, med.estado_stock])
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except: pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    wb.save(response)
+    return response
+
+@personal_medico_required
+def exportar_medicamentos_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="listado_medicamentos_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Medicamentos"
+    ws.freeze_panes = 'A2'
+    headers = ['Código', 'Nombre', 'Descripción', 'Categoría', 'Proveedor', 'Precio Unitario', 'Stock Mínimo']
+    ws.append(headers)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="0d6efd", end_color="0d6efd", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    medicamentos = Medicamento.objects.select_related('categoria', 'proveedor').all().order_by('nombre')
+    for med in medicamentos:
+        ws.append([med.codigo, med.nombre, med.descripcion, med.categoria.nombre, med.proveedor.nombre, med.precio_unitario, med.stock_minimo])
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except: pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    wb.save(response)
+    return response
+
+@personal_medico_required
+def exportar_proveedores_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="listado_proveedores_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Proveedores"
+    ws.freeze_panes = 'A2'
+    headers = ['Nombre', 'Contacto', 'Teléfono', 'Email', 'Dirección']
+    ws.append(headers)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="0d6efd", end_color="0d6efd", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    proveedores = Proveedor.objects.all().order_by('nombre')
+    for p in proveedores:
+        ws.append([p.nombre, p.contacto, p.telefono, p.email, p.direccion])
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except: pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    wb.save(response)
+    return response
+
+@personal_medico_required
+def exportar_categorias_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="listado_categorias_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Categorías"
+    ws.freeze_panes = 'A2'
+    headers = ['Nombre', 'Descripción']
+    ws.append(headers)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="0d6efd", end_color="0d6efd", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    categorias = Categoria.objects.all().order_by('nombre')
+    for cat in categorias:
+        ws.append([cat.nombre, cat.descripcion])
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except: pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    wb.save(response)
+    return response
+
+@personal_medico_required
+def exportar_inventario_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="reporte_inventario_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Inventario"
+    ws.freeze_panes = 'A2'
+    headers = ['Medicamento', 'Código', 'Lote', 'Cantidad', 'Fecha de Ingreso', 'Fecha de Caducidad', 'Estado']
+    ws.append(headers)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="0d6efd", end_color="0d6efd", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    inventario = Inventario.objects.select_related('medicamento').all().order_by('-created_at')
+    for item in inventario:
+        ws.append([
+            item.medicamento.nombre,
+            item.medicamento.codigo,
+            item.lote or 'N/A',
+            item.cantidad,
+            item.created_at.strftime('%d/%m/%Y'),
+            item.fecha_caducidad.strftime('%d/%m/%Y') if item.fecha_caducidad else 'N/A',
+            item.estado
+        ])
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except: pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    wb.save(response)
+    return response
+
 
 # Vistas para Movimientos
+@personal_medico_required
 def listar_movimientos(request):
     movimientos_list = MovimientoInventario.objects.select_related('medicamento').all().order_by('-fecha')
     paginator = Paginator(movimientos_list, 10)
@@ -323,7 +528,7 @@ def listar_movimientos(request):
     movimientos = paginator.get_page(page_number)
     return render(request, 'inventario/movimientos/listar.html', {'movimientos': movimientos})
 
-@login_required
+@personal_medico_required
 def crear_salida_inventario(request):
     if request.method == 'POST':
         form = MovimientoSalidaForm(request.POST)
@@ -352,10 +557,12 @@ def crear_salida_inventario(request):
 
 
 # Vista principal del inventario
+@personal_medico_required
 def index(request):
     return render(request, 'inventario/index.html')
 
 # Vista para creación de medicamentos vía AJAX
+@login_required
 @require_POST
 def crear_medicamento_ajax(request):
     data = request.POST.copy()
@@ -380,6 +587,7 @@ def crear_medicamento_ajax(request):
         errors = {field: error[0] for field, error in form.errors.items()}
         return JsonResponse({'success': False, 'errors': errors}, status=400)
 
+@login_required
 @require_POST
 def crear_categoria_ajax(request):
     try:
@@ -394,6 +602,7 @@ def crear_categoria_ajax(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'errors': 'Invalid JSON'}, status=400)
 
+@login_required
 @require_POST
 def crear_proveedor_ajax(request):
     try:

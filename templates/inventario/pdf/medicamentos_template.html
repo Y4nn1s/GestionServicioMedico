@@ -51,6 +51,8 @@
                 <th>Categoría</th>
                 <th>Proveedor</th>
                 <th>Descripción</th>
+                <th class="text-center">Precio Unitario</th>
+                <th class="text-center">Stock Mínimo</th>
             </tr>
         </thead>
         <tbody>
@@ -61,6 +63,8 @@
                 <td>{{ med.categoria.nombre }}</td>
                 <td>{{ med.proveedor.nombre }}</td>
                 <td>{{ med.descripcion|default:"N/A" }}</td>
+                <td class="text-center">Bs. {{ med.precio_unitario }}</td>
+                <td class="text-center">{{ med.stock_minimo }}</td>
             </tr>
             {% empty %}
             <tr>

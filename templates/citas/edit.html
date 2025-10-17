@@ -32,7 +32,12 @@
                             <label for="{{ form.tipo_cita.id_for_label }}" class="form-label">
                                 {{ form.tipo_cita.label }}
                             </label>
-                            {{ form.tipo_cita }}
+                            <div class="input-group">
+                                {{ form.tipo_cita }}
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#crearTipoModal">
+                                    <i class="bi bi-plus-circle"></i> Nuevo
+                                </button>
+                            </div>
                             {% if form.tipo_cita.errors %}
                                 <div class="text-danger">
                                     {{ form.tipo_cita.errors }}
@@ -46,7 +51,12 @@
                             <label for="{{ form.motivo.id_for_label }}" class="form-label">
                                 {{ form.motivo.label }}
                             </label>
-                            {{ form.motivo }}
+                            <div class="input-group">
+                                {{ form.motivo }}
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#crearMotivoModal">
+                                    <i class="bi bi-plus-circle"></i> Nuevo
+                                </button>
+                            </div>
                             {% if form.motivo.errors %}
                                 <div class="text-danger">
                                     {{ form.motivo.errors }}
@@ -58,7 +68,12 @@
                             <label for="{{ form.estado.id_for_label }}" class="form-label">
                                 {{ form.estado.label }}
                             </label>
-                            {{ form.estado }}
+                            <div class="input-group">
+                                {{ form.estado }}
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#crearEstadoModal">
+                                    <i class="bi bi-plus-circle"></i> Nuevo
+                                </button>
+                            </div>
                             {% if form.estado.errors %}
                                 <div class="text-danger">
                                     {{ form.estado.errors }}
@@ -130,13 +145,91 @@
         </div>
     </div>
 </div>
+
+<!-- Modals -->
+<div class="modal fade" id="crearTipoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Tipo de Cita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearTipoForm">
+                    <div class="mb-3">
+                        <label for="nombre_tipo" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre_tipo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion_tipo" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion_tipo" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="duracion_tipo" class="form-label">Duración (minutos)</label>
+                        <input type="number" class="form-control" id="duracion_tipo" value="30">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="crearMotivoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Motivo de Cita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearMotivoForm">
+                    <div class="mb-3">
+                        <label for="nombre_motivo" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre_motivo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion_motivo" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion_motivo" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="crearEstadoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Estado de Cita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearEstadoForm">
+                    <div class="mb-3">
+                        <label for="nombre_estado" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre_estado" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion_estado" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion_estado" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+{% load static %}
+<script src="{% static 'js/citas_modals.js' %}"></script>
 <script>
 $(document).ready(function() {
     // Asegurar que se muestren los valores correctos de fecha y hora
-    // Verificar si hay valores guardados para fecha y horas
     {% if form.instance.fecha %}
         var fechaCita = "{{ form.instance.fecha|date:'Y-m-d' }}";
         $('#id_fecha').val(fechaCita);
@@ -153,4 +246,3 @@ $(document).ready(function() {
     {% endif %}
 });
 </script>
-{% endblock %}

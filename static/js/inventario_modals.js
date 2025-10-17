@@ -1,87 +1,102 @@
 $(document).ready(function() {
-    // Función genérica para manejar la subida de formularios de modales
-    function handleModalFormSubmit(formId, url, modalId, selectId, successMessage, errorMessage) {
-        var form = $(formId);
+    // Crear Categoría
+    $('#crearCategoriaForm').submit(function(e) {
+        e.preventDefault();
+        
+        var formData = {
+            'nombre': $('#nombre_categoria').val(),
+            'descripcion': $('#descripcion_categoria').val()
+        };
 
-        function clearErrors() {
-            form.find('.invalid-feedback').remove();
-            form.find('.is-invalid').removeClass('is-invalid');
+        if (!formData.nombre) {
+            alert('Por favor, ingrese un nombre para la categoría.');
+            return;
         }
 
-        function showErrors(errors) {
-            clearErrors();
-            for (var field in errors) {
-                var input = form.find('[name=' + field + ']');
-                input.addClass('is-invalid');
-                input.after('<div class="invalid-feedback">' + errors[field] + '</div>');
-            }
-        }
+        var submitBtn = $(this).find('button[type=submit]');
+        var originalText = submitBtn.html();
+        submitBtn.html('<i class="bi bi-hourglass"></i> Creando...');
+        submitBtn.prop('disabled', true);
 
-        form.submit(function(e) {
-            e.preventDefault();
-            var data = {};
-            form.serializeArray().forEach(function(item) {
-                data[item.name] = item.value;
-            });
-
-            var submitBtn = form.find('button[type=submit]');
-            var originalText = submitBtn.html();
-            submitBtn.html('<i class="bi bi-hourglass"></i> Creando...');
-            submitBtn.prop('disabled', true);
-            clearErrors();
-
-            $.ajax({
-                url: url,
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
-                },
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                success: function(response) {
-                    if (response.success) {
-                        $(selectId).append($('<option>', { value: response.id, text: response.nombre }));
-                        $(selectId).val(response.id);
-                        $(modalId).modal('hide');
-                        form[0].reset();
-                    } else {
-                        showErrors(response.errors);
-                    }
-                },
-                error: function(xhr) {
-                    alert(errorMessage + '. ' + xhr.responseText);
-                },
-                complete: function() {
-                    submitBtn.html(originalText);
-                    submitBtn.prop('disabled', false);
+        $.ajax({
+            url: '/inventario/ajax/crear-categoria/',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                if (response.success) {
+                    $('#id_categoria').append($('<option>', {
+                        value: response.id,
+                        text: response.nombre
+                    })).val(response.id);
+                    $('#crearCategoriaModal').modal('hide');
+                    $('#crearCategoriaForm')[0].reset();
+                } else {
+                    alert('Error al crear la categoría: ' + JSON.stringify(response.errors));
                 }
-            });
+            },
+            error: function(xhr) {
+                alert('Error de servidor: ' + xhr.responseText);
+            },
+            complete: function() {
+                submitBtn.html(originalText);
+                submitBtn.prop('disabled', false);
+            }
         });
+    });
 
-        // Limpiar errores cuando el modal se cierra
-        $(modalId).on('hidden.bs.modal', function () {
-            clearErrors();
-            form[0].reset();
+    // Crear Proveedor
+    $('#crearProveedorForm').submit(function(e) {
+        e.preventDefault();
+
+        var formData = {
+            'nombre': $('#nombre_proveedor').val(),
+            'contacto': $('#contacto_proveedor').val(),
+            'telefono': $('#telefono_proveedor').val(),
+            'email': $('#email_proveedor').val(),
+            'direccion': $('#direccion_proveedor').val()
+        };
+
+        if (!formData.nombre) {
+            alert('Por favor, ingrese un nombre para el proveedor.');
+            return;
+        }
+
+        var submitBtn = $(this).find('button[type=submit]');
+        var originalText = submitBtn.html();
+        submitBtn.html('<i class="bi bi-hourglass"></i> Creando...');
+        submitBtn.prop('disabled', true);
+
+        $.ajax({
+            url: '/inventario/ajax/crear-proveedor/',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                if (response.success) {
+                    $('#id_proveedor').append($('<option>', {
+                        value: response.id,
+                        text: response.nombre
+                    })).val(response.id);
+                    $('#crearProveedorModal').modal('hide');
+                    $('#crearProveedorForm')[0].reset();
+                } else {
+                    alert('Error al crear el proveedor: ' + JSON.stringify(response.errors));
+                }
+            },
+            error: function(xhr) {
+                alert('Error de servidor: ' + xhr.responseText);
+            },
+            complete: function() {
+                submitBtn.html(originalText);
+                submitBtn.prop('disabled', false);
+            }
         });
-    }
-
-    // Implementación para Categoría
-    handleModalFormSubmit(
-        '#crearCategoriaForm',
-        '/inventario/ajax/crear-categoria/',
-        '#crearCategoriaModal',
-        '#id_categoria',
-        'Categoría creada exitosamente',
-        'Error al crear la categoría'
-    );
-
-    // Implementación para Proveedor
-    handleModalFormSubmit(
-        '#crearProveedorForm',
-        '/inventario/ajax/crear-proveedor/',
-        '#crearProveedorModal',
-        '#id_proveedor',
-        'Proveedor creado exitosamente',
-        'Error al crear el proveedor'
-    );
+    });
 });

@@ -190,3 +190,12 @@ TelefonoFormSet = inlineformset_factory(
     extra=1, can_delete=True,
     fields=['tipo_telefono', 'numero', 'es_principal']
 )
+
+
+class TipoTelefonoForm(forms.ModelForm):
+    class Meta:
+        model = TipoTelefono
+        fields = ['nombre']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Móvil, Casa, Trabajo'}),
+        }

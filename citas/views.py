@@ -19,10 +19,15 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 from sistema_medico.settings import BASE_DIR
 
+from django.contrib.auth.decorators import login_required
+
+from core.decorators import personal_medico_required
+
 from .models import Cita, EstadoCita, TipoCita, MotivoCita, NotaCita, TipoNota
 from .forms import CitaForm, EstadoCitaForm, TipoCitaForm, MotivoCitaForm
 from pacientes.models import Paciente
 
+@personal_medico_required
 def index(request):
     # Obtener los parámetros de la URL
     estado_filtro = request.GET.get('estado')
@@ -77,6 +82,7 @@ def index(request):
     
     return render(request, 'citas/index.html', context)
 
+@personal_medico_required
 @transaction.atomic
 def create(request):
     if request.method == 'POST':
@@ -128,6 +134,7 @@ def create(request):
     })
 
 # Vistas AJAX para crear tipos, motivos y estados desde el formulario
+@login_required
 @require_http_methods(["POST"])
 @csrf_exempt
 def crear_tipo_cita_ajax(request):
@@ -152,6 +159,7 @@ def crear_tipo_cita_ajax(request):
             'error': str(e)
         })
 
+@login_required
 @require_http_methods(["POST"])
 @csrf_exempt
 def crear_motivo_cita_ajax(request):
@@ -176,6 +184,7 @@ def crear_motivo_cita_ajax(request):
             'error': str(e)
         })
 
+@login_required
 @require_http_methods(["POST"])
 @csrf_exempt
 def crear_estado_cita_ajax(request):
@@ -200,6 +209,7 @@ def crear_estado_cita_ajax(request):
             'error': str(e)
         })
 
+@personal_medico_required
 def show(request, cita_id):
     try:
         cita = get_object_or_404(Cita, id=cita_id)
@@ -212,6 +222,7 @@ def show(request, cita_id):
         messages.error(request, f'Error al cargar la cita: {str(e)}')
         return redirect('citas:index')
 
+@personal_medico_required
 @transaction.atomic
 def edit(request, cita_id):
     cita = get_object_or_404(Cita, id=cita_id)
@@ -264,6 +275,7 @@ def edit(request, cita_id):
         'motivos': motivos,
     })
 
+@personal_medico_required
 @transaction.atomic
 def destroy(request, cita_id):
     cita = get_object_or_404(Cita, id=cita_id)
@@ -283,6 +295,7 @@ def destroy(request, cita_id):
     
     return render(request, 'citas/destroy.html', {'cita': cita})
 
+@personal_medico_required
 def search(request):
     query = request.GET.get('q', '')
     citas = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
@@ -303,6 +316,7 @@ def search(request):
         'query': query
     })
 
+@personal_medico_required
 def citas_hoy(request):
     try:
         hoy = timezone.now().date()
@@ -318,6 +332,7 @@ def citas_hoy(request):
         messages.error(request, f'Error al cargar las citas de hoy: {str(e)}')
         return redirect('citas:index')
 
+@personal_medico_required
 @transaction.atomic
 def cambiar_estado(request, cita_id, estado_id):
     try:
@@ -355,6 +370,7 @@ def cambiar_estado(request, cita_id, estado_id):
 
 # --- Vistas de Exportación --- #
 
+@personal_medico_required
 def exportar_citas_pdf(request):
     citas = Cita.objects.all().select_related('paciente', 'tipo_cita', 'motivo', 'estado').order_by('-fecha', '-hora_inicio')
     logo_path = str(BASE_DIR / 'static/img/logo.png')
@@ -377,6 +393,7 @@ def exportar_citas_pdf(request):
     
     return HttpResponse("Error al generar el PDF.", status=400)
 
+@personal_medico_required
 def exportar_citas_excel(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="listado_citas_{}.xlsx"'.format(datetime.datetime.now().strftime("%Y%m%d"))
@@ -423,6 +440,7 @@ def exportar_citas_excel(request):
     return response
 
 # Vistas AJAX para crear tipos, motivos y estados de cita
+@login_required
 @require_http_methods(["POST"])
 @csrf_exempt
 def crear_tipo_cita_ajax(request):
@@ -447,6 +465,7 @@ def crear_tipo_cita_ajax(request):
             'error': str(e)
         })
 
+@login_required
 @require_http_methods(["POST"])
 @csrf_exempt
 def crear_motivo_cita_ajax(request):
@@ -471,6 +490,7 @@ def crear_motivo_cita_ajax(request):
             'error': str(e)
         })
 
+@login_required
 @require_http_methods(["POST"])
 @csrf_exempt
 def crear_estado_cita_ajax(request):
