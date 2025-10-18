@@ -10,7 +10,7 @@ class PacienteForm(forms.ModelForm):
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Repita el correo electrónico'}),
         label="Confirmar Email"
     )
-    
+
     class Meta:
         model = Paciente
         fields = [
@@ -56,11 +56,9 @@ class PacienteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Establecer valores predeterminados
         if not self.instance.pk:
             self.fields['genero'].initial = Genero.MASCULINO
-        
-        # Formatear correctamente la fecha de nacimiento si existe
+
         if self.instance and self.instance.fecha_nacimiento:
             self.fields['fecha_nacimiento'].widget.attrs['value'] = self.instance.fecha_nacimiento.strftime('%Y-%m-%d')
 
@@ -76,8 +74,9 @@ class PacienteForm(forms.ModelForm):
     def clean_nombre(self):
         nombre = self.cleaned_data.get('nombre')
         if nombre:
-            if not nombre.replace(' ', '').isalpha():
-                raise ValidationError('Los nombres solo deben contener letras y espacios.')
+            # Permite letras, espacios y apóstrofes/guiones (común en nombres/apellidos)
+            if not all(c.isalpha() or c.isspace() or c in "-'" for c in nombre):
+                 raise ValidationError('Los nombres solo deben contener letras, espacios, apóstrofes o guiones.')
             if len(nombre) > 30:
                 raise ValidationError('El nombre no debe exceder los 30 caracteres.')
         return nombre
@@ -85,18 +84,33 @@ class PacienteForm(forms.ModelForm):
     def clean_apellido(self):
         apellido = self.cleaned_data.get('apellido')
         if apellido:
-            if not apellido.replace(' ', '').isalpha():
-                raise ValidationError('Los apellidos solo deben contener letras y espacios.')
+             # Permite letras, espacios y apóstrofes/guiones (común en nombres/apellidos)
+            if not all(c.isalpha() or c.isspace() or c in "-'" for c in apellido):
+                raise ValidationError('Los apellidos solo deben contener letras, espacios, apóstrofes o guiones.')
             if len(apellido) > 20:
                 raise ValidationError('El apellido no debe exceder los 20 caracteres.')
         return apellido
+
+    # Validación de confirmación de email (opcional pero buena práctica)
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get("email")
+        confirmar_email = cleaned_data.get("confirmar_email")
+
+        # Solo valida si ambos emails fueron ingresados
+        if email and confirmar_email and email != confirmar_email:
+            self.add_error('confirmar_email', "Los correos electrónicos no coinciden.")
+
+        return cleaned_data
+
 
 class DireccionForm(forms.ModelForm):
     class Meta:
         model = Direccion
         fields = ['ciudad', 'direccion', 'codigo_postal']
         widgets = {
-            'ciudad': forms.Select(attrs={'class': 'form-control mb-2 ciudad-select'}),
+            # Mantenemos HiddenInput
+            'ciudad': forms.HiddenInput(),
             'direccion': forms.TextInput(attrs={
                 'class': 'form-control mb-2',
                 'placeholder': 'Ej: Av. Principal, Calle 1, Casa 123'
@@ -114,41 +128,13 @@ class DireccionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Inicializar el queryset de ciudades con todas las ciudades disponibles
-        self.fields['ciudad'].queryset = Ciudad.objects.select_related('estado__pais').all()
+        # Hacemos ciudad NO requerido explícitamente en el formulario
+        self.fields['ciudad'].required = False
+        # Mantenemos el queryset por si acaso, aunque no se use en el render
+        self.fields['ciudad'].queryset = Ciudad.objects.all()
 
-    def clean_ciudad(self):
-        ciudad = self.cleaned_data.get('ciudad')
-        direccion = self.cleaned_data.get('direccion')
-        
-        # Solo validar si se ha ingresado una dirección
-        if direccion and not ciudad:
-            raise ValidationError("Debe seleccionar una ciudad cuando ingresa una dirección.")
-            
-        return ciudad
+    # Eliminamos las validaciones clean_ciudad y clean que dependían de la ciudad aquí
 
-    def clean_direccion(self):
-        direccion = self.cleaned_data.get('direccion')
-        ciudad = self.cleaned_data.get('ciudad')
-        
-        # Solo validar si se ha seleccionado una ciudad
-        if ciudad and not direccion:
-            raise ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
-            
-        return direccion
-
-    def clean(self):
-        cleaned_data = super().clean()
-        ciudad = cleaned_data.get('ciudad')
-        direccion = cleaned_data.get('direccion')
-        
-        # Validación adicional para asegurar consistencia
-        if direccion and not ciudad:
-            raise ValidationError("Debe seleccionar una ciudad cuando ingresa una dirección.")
-        elif ciudad and not direccion:
-            raise ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
-            
-        return cleaned_data
 
 class TelefonoForm(forms.ModelForm):
     class Meta:
@@ -171,14 +157,16 @@ class TelefonoForm(forms.ModelForm):
 
     def clean_numero(self):
         numero = self.cleaned_data.get('numero')
+        # La validación solo se aplica si se ingresa un número
         if numero:
             if len(numero) != 11:
                 raise ValidationError('El número de teléfono debe tener exactamente 11 dígitos.')
             if not numero.isdigit():
                 raise ValidationError('El número de teléfono solo debe contener dígitos.')
+        # Si no se ingresa número y el campo no es obligatorio, se permite pasar
         return numero
 
-# Formsets para manejar múltiples direcciones y teléfonos
+# Formsets
 DireccionFormSet = inlineformset_factory(
     Paciente, Direccion, form=DireccionForm,
     extra=1, can_delete=True,
@@ -190,7 +178,6 @@ TelefonoFormSet = inlineformset_factory(
     extra=1, can_delete=True,
     fields=['tipo_telefono', 'numero', 'es_principal']
 )
-
 
 class TipoTelefonoForm(forms.ModelForm):
     class Meta:
