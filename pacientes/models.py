@@ -6,10 +6,10 @@ class TipoDocumento(models.Model):
     descripcion = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return self.nombre
-    
+
     class Meta:
         db_table = 'tipos_documento'
         verbose_name = 'Tipo de Documento'
@@ -24,10 +24,10 @@ class Pais(models.Model):
     codigo_iso = models.CharField(max_length=3, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return self.nombre
-    
+
     class Meta:
         db_table = 'paises'
         verbose_name = 'País'
@@ -38,10 +38,10 @@ class Estado(models.Model):
     pais = models.ForeignKey(Pais, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.nombre}, {self.pais.nombre}"
-    
+
     class Meta:
         db_table = 'estados'
         unique_together = ('nombre', 'pais')
@@ -53,10 +53,10 @@ class Ciudad(models.Model):
     estado = models.ForeignKey(Estado, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.nombre}, {self.estado.nombre}"
-    
+
     class Meta:
         db_table = 'ciudades'
         unique_together = ('nombre', 'estado')
@@ -68,10 +68,10 @@ class TipoTelefono(models.Model):
     mascara = models.CharField(max_length=20, blank=True, null=True)  # Ej: (XXX) XXX-XXXX
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return self.nombre
-    
+
     class Meta:
         db_table = 'tipos_telefono'
         verbose_name = 'Tipo de Teléfono'
@@ -91,10 +91,10 @@ class Paciente(models.Model):
     email = models.EmailField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
-    
+
     @property
     def edad(self):
         from datetime import date
@@ -102,7 +102,7 @@ class Paciente(models.Model):
         return today.year - self.fecha_nacimiento.year - (
             (today.month, today.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
         )
-    
+
     class Meta:
         db_table = 'pacientes'
         indexes = [
@@ -119,24 +119,20 @@ class Direccion(models.Model):
     codigo_postal = models.CharField(max_length=4, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.direccion}, {self.ciudad}"
-    
+
     def clean(self):
-        # Validar que si hay dirección, debe haber ciudad
-        if self.direccion and not self.ciudad_id:
-            raise ValidationError("Debe seleccionar una ciudad cuando ingresa una dirección.")
-            
-        # Validar que si hay ciudad, debe haber dirección
+        # Validar que si hay ciudad (aunque sea fija), debe haber dirección
         if self.ciudad_id and not self.direccion:
-            raise ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
+             raise ValidationError("Debe ingresar una dirección cuando selecciona una ciudad.")
 
     def save(self, *args, **kwargs):
         # Llamar a la validación antes de guardar
         self.clean()
         super().save(*args, **kwargs)
-    
+
     class Meta:
         db_table = 'direcciones'
         verbose_name = 'Dirección'
@@ -149,10 +145,10 @@ class Telefono(models.Model):
     es_principal = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.numero} ({self.tipo_telefono.nombre})"
-    
+
     class Meta:
         db_table = 'telefonos'
         unique_together = ('paciente', 'numero')

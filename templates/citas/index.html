@@ -211,6 +211,7 @@ $(document).ready(function() {
                     badge.css('background-color', response.nuevo_estado_color || '#6c757d');
                     
                     $('#cambiarEstadoModal').modal('hide');
+                    window.location.reload();
                 } else {
                     alert('Error: ' + (response.error || 'No se pudo cambiar el estado.'));
                 }
