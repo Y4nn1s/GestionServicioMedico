@@ -110,7 +110,8 @@ $(document).ready(function() {
                     url: '/inventario/ajax/crear-categoria/',
                     method: 'POST',
                     headers: { 'X-CSRFToken': csrfToken },
-                    data: { nombre: newCatName }
+                    contentType: 'application/json',
+                    data: JSON.stringify({ nombre: newCatName })
                 });
                 console.log("Respuesta de creación de categoría:", catResponse);
                 categoriaId = catResponse.id;
@@ -125,7 +126,10 @@ $(document).ready(function() {
                     url: '/inventario/ajax/crear-proveedor/',
                     method: 'POST',
                     headers: { 'X-CSRFToken': csrfToken },
-                    data: { nombre: newProvName }
+                    // --- Corrección aquí ---
+                    contentType: 'application/json', // Especificar que se envía JSON
+                    data: JSON.stringify({ nombre: newProvName }) // Convertir datos a string JSON
+                    // --- Fin Corrección ---
                 });
                 console.log("Respuesta de creación de proveedor:", provResponse);
                 proveedorId = provResponse.id;
